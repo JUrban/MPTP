@@ -77,6 +77,7 @@ my @gnrsym;   # Nr2Sym array for symbols - takes gsymoffset into account!
   Global Vars  : %gcnt, @ARGV, %gproblems, %grefnr, @gnrref,%gsymnr,@gnrsym
   Args	       : -
   Side Effects : %grefnr,@gnrref,%gsymnr,@gnrsym
+
 =cut
 sub AddNumbers
 {
@@ -162,8 +163,15 @@ sub Translate
 
 	next ONE if($aname =~ /^canceled_.*$/); 
 
-	print TRAIN join(",", @conj_syms1),    $fieldsepar, 
-	    join(",", @dir_refs1),      $linesepar;
+	if(-1 == $#conj_syms1)
+	{
+	    print "No symbols found in: $tname\n!";
+	}
+	else
+	{
+	    print TRAIN join(",", @conj_syms1),    $fieldsepar, 
+		join(",", @dir_refs1),      $linesepar;
+	}
     }
 }
 
