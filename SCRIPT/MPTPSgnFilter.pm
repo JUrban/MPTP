@@ -93,7 +93,7 @@ use vars (@EXPORT, @EXPORT_OK);
 # created manually, and thus not in the cache, however
 # the processing info for them is hidden in the 'SPC' slot.
 
-my @GCACHETOKENS = ('DCO', 'PRO', 'CLF', 'CLC', 'DRE');
+my @GCACHETOKENS = ('DCO', 'PRO', 'DEF', 'CLF', 'CLC', 'DRE');
 
 #------------------------------------------------------------------------
 #  Function    : CollectSymbols()
@@ -175,6 +175,8 @@ sub GetMatchingParen
 #  Output      : -
 #------------------------------------------------------------------------
 
+my $CANCELED_DEF_SYNBOL = "_"; # used in defsymbols
+
 sub InitCache
 {
     my ($C, $bg) = @_;
@@ -210,6 +212,27 @@ sub InitCache
 	$C->{'PRO'}{$symb}{$j} =  CollectSymbols($content);
     }
 
+    foreach $j (@{$bg->{'DEF'}})
+    {
+	my $dname;
+
+	$D{'DEFSYMS'}[$j]     =~ m/^\s*defines\((d\d+_\w+),(\w+)\)$/
+	    or die "Bad DEFSYMS at $j:$1,$2";
+
+	($dname, $symb) = ($1, $2);
+
+	if($CANCELED_DEF_SYNBOL ne $symb)
+	{
+	    $D{'DEF'}[$j]         =~ m/^\s*formula\((.*)\n(d\d+_\w+)\)$/s
+		or die "Bad DEF fla at $j:$1,$2,$3\n";
+
+	    $dname eq $2 or die "DEFSYMS and DEF not in sync at $j";
+
+	    $content      =  $1;
+
+	    $C->{'DEF'}{$symb}{$j} =  CollectSymbols($content);
+	}
+    }
 
     foreach $j (@{$bg->{'DRE'}})
     {
@@ -390,7 +413,7 @@ sub PrintCache
 }
 
 #------------------------------------------------------------------------
-#  Function    : AddTypesAndProps()
+#  Function    : AddTypesPropsAndDefs()
 #
 #  Add numbers of 'DCO' and 'PRO' flas for delta symbols to 
 #  $addedbg, add symbols of that flas to $newsyms.
@@ -404,7 +427,7 @@ sub PrintCache
 #  Output      : number of added formulas
 #------------------------------------------------------------------------
 
-sub AddTypesAndProps
+sub AddTypesPropsAndDefs
 {
     my ($addedbg, $newsyms, $deltasyms, $C) = @_;
     my ($sym, $kind, $j, $result);
@@ -413,7 +436,7 @@ sub AddTypesAndProps
 
     foreach $sym (keys %$deltasyms)
     {
-	foreach $kind ('DCO', 'PRO')
+	foreach $kind ('DCO', 'PRO', 'DEF')
 	{
 	    if(exists $C->{$kind}{$sym})
 	    {
@@ -620,7 +643,7 @@ sub OneStep
 
     $result = 0;
 
-    $result  += AddTypesAndProps($addedbg, $newsyms, $deltasyms, $C);
+    $result  += AddTypesPropsAndDefs($addedbg, $newsyms, $deltasyms, $C);
     $result  += AddClusters($addedbg, $newsyms, $deltasyms, $C);
     $result  += AddRequirements($addedbg, $newsyms, $deltasyms, $C);
     $result  += AddSpecial($addedbg, $newsyms, $deltasyms, $C);
