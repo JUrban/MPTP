@@ -79,6 +79,16 @@ stdverify	=  $(addsuffix .vrf,$(STDMIZPREF))
 verify:  links $(stdverify)
 	@echo "All verified"
 
+# Generic for irrelevant utility linked to $(IRRUTIL)
+%.irr: %.evl
+	-$(IRRUTIL) -q $* >> $(IRRLOG)
+	@touch $@
+
+stdirr	= $(addsuffix .irr,$(STDMIZPREF))
+
+irr_util: links $(stdirr)
+	@echo "All irrelevant done"
+
 # Relcprem - we have to ignore errors now, should be fixed in
 # relcprem
 
