@@ -6,7 +6,7 @@ MPTPMakeSnowDB.pl ( Data generating script for the Snow learning system)
 
 =head1 SYNOPSIS
 
-MPTPMakeSnowDB.pl [options]
+MPTPMakeSnowDB.pl [options] filename
 
  Options:
    --basedir=<arg>,         -b<arg>
@@ -37,7 +37,8 @@ Print the manual page and exit.
 
 =head1 DESCRIPTION
 
-B<MPTPMakeSnowDB.pl> creates snowpinfo.db, indexed as theorems.db.
+B<MPTPMakeSnowDB.pl> creates the training (filename.train) and 
+architecture (filename.arch) files  for the Snow learning system.
 The feature numbering is derived from numbering of theroems and
 definitions - symbol numbering atrts at offset 100000.
 The output is: conjecture_symbols,direct_refernces:
@@ -48,6 +49,7 @@ Josef Urban urban@kti.ms.mff.cuni.cz
 
 =cut
 use strict;
+use Pod::Usage;
 use Getopt::Long;
 use MPTPDebug;
 use MPTPUtils;
@@ -85,8 +87,11 @@ sub AddNumbers
     {
 	for ($i = 1; $i <= $gcnt{$an}->{'THE'}; $i++)
 	{
-	    push(@gnrref, "t$i"."_$an");
-	    $grefnr{"t$i"."_$an"} = $#gnrref;
+	    if(!ThCanceled($i + $grcn{$an}->{'THE'} - 1))
+	    {
+		push(@gnrref, "t$i"."_$an");
+		$grefnr{"t$i"."_$an"} = $#gnrref;
+	    }
 	}
 
 	for ($i = 1; $i <= $gcnt{$an}->{'DEF'}; $i++)
@@ -116,7 +121,7 @@ sub Translate
  ONE: while($ref = <REFS>)
     {
 	my ($tname, $aname, $thnr, $prf_length, $drefs, @dir_refs,
-	    @bg_refs, @conj_syms, @refsyms, @allsyms);
+	    @dir_refs1, @bg_refs, @conj_syms, @conj_syms1, @refsyms, @allsyms);
 
 	$pinfo = <PINFOS>; # or die "$refs and $pinfos not synchronized!";
 
@@ -131,11 +136,25 @@ sub Translate
 	($tname eq $1) or die "$refs and $pinfos not synchronized:$tname:$1";
 
 	#    @bg_refs   = split(/\,/, $2);
-	@conj_syms = map($gsymnr{$_}, (split(/\,/, $3)));
+	@conj_syms = map { $gsymnr{$_} if(exists($gsymnr{$_})) }
+	                 (split(/\,/, $3));
 	#    @refsyms   = split(/\,/, $4);
 	#    @allsyms   = split(/\,/, $5);
 
-	@dir_refs  = map($grefnr{$_}, ($tname,split(/\,/, $drefs)));
+	@dir_refs  = map { $grefnr{$_} if(exists($grefnr{$_})) }
+			 ($tname,split(/\,/, $drefs));
+
+	@conj_syms1 = ();
+	foreach $_ (@conj_syms)
+	{
+	    push(@conj_syms1,$_) if("" ne $_);
+	}
+
+	@dir_refs1 = ();
+	foreach $_ (@dir_refs)
+	{
+	    push(@dir_refs1,$_) if("" ne $_);
+	}
 
 	$tname     =~ /^t(\d+)_(\w+)$/ or die "Bad theorem: $tname";
 
@@ -143,8 +162,8 @@ sub Translate
 
 	next ONE if($aname =~ /^canceled_.*$/); 
 
-	print  join(",", @conj_syms),    $fieldsepar, 
-	    join(",", @dir_refs),      $linesepar;
+	print TRAIN join(",", @conj_syms1),    $fieldsepar, 
+	    join(",", @dir_refs1),      $linesepar;
     }
 }
 
@@ -163,7 +182,9 @@ pod2usage(-exitstatus => 0, -verbose => 2) if($man);
 die "Set the MPTPDIR shell variable, or run with the -b option"
     if ("/" eq $MPTPDIR);
 
-# pod2usage(2) if ($#ARGV <= 0)
+pod2usage(2) if ($#ARGV != 0);
+
+my $fname = shift @ARGV;
 
 $SkipBadThRefsProblems = 0;  # Do symbols for thhes with bad refs too
 
@@ -179,6 +200,9 @@ AddNumbers();
 
 open(REFS, $refs)     or die "$refs not readable!";
 open(PINFOS, $pinfos) or die "$pinfos not readable!";
+open(TRAIN, ">$fname.train") or die "$fname.train not writable!";
+open(ARCH, ">$fname.arch") or die "$fname.arch not writable!";
 
 Translate();
 
+print ARCH "-W :0-$#gnrref\n";
