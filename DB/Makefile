@@ -361,9 +361,11 @@ ADDEDREQENVFIX	= "env([],[],[],[],[],[],[],[],[])."
 
 environments.db: $(alldsf)
 	rm -r -f environments.db;
+ifneq ($(strip $(ADDEDREQFILES)),)
 	@for f in $(ADDEDREQFILES); do \
 	  echo $(ADDEDREQENVFIX) >> environments.db; \
 	done;
+endif
 	@for f in $(ALLMIZPREF);do \
 	  perl -F $(DBENV) $$f >> environments.db; \
 	  echo "Environment for $$f inserted"; \
