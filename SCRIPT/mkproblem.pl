@@ -18,6 +18,7 @@ mkproblem.pl -tcard_1 -trolle -ccard_2 t39_absvalue by_25_16_2_absvalue
    --tharticles=<arg>,      -t<arg>
    --chkarticles=<arg>,     -c<arg>
    --filter=<arg>,          -f<arg>
+   --specfile=<arg>,        -F<arg>
    --help,                  -h
    --man
 
@@ -56,6 +57,10 @@ repeated to specify multiple articles.
 Specify the filtering of the background formulas. 
 Default is now 1 - the checker-based signature filtering. 
 Setting to 0 does no filtering at all.
+
+=item B<<< --specfile=<arg>, -F<arg> >>>
+
+Read problem specifications from the file <arg>.
 
 =item B<<< --help, -h >>>
 
@@ -125,6 +130,7 @@ my ($help, $man, @tharticles, @chkarticles); # do all problems for these
 
 my $gaddme = 1;			# Tells to add article to its env. directives
 my $FILTER = 1;
+my $ProblemSpecFile;            # Input file containing problem specifications
 
 sub Usage 
 {
@@ -140,7 +146,7 @@ theorem problems and 'by_25_16_2_absvalue' for checker problems.\nUse the -t opt
 #  Check the arguments - article names and theorem numbers.
 #
 #  Input       : -
-#  Global Vars : %gcnt, @ARGV, %gproblems, 
+#  Global Vars : %gcnt, @ARGV, %gproblems, $ProblemSpecFile
 #  Side Effects: Can die, loads %gproblems
 #------------------------------------------------------------------------
 
@@ -148,36 +154,61 @@ sub  ProcessArgs
 {
     my ($arg, $thnr, $an);
 
-    foreach $arg (@ARGV)
+    if(defined $ProblemSpecFile)
     {
-	if ($arg =~ /t(\d+)_(\w+)(\[.*\])?$/)
-	{
-	    $thnr = $1;
-	    $an   = $2;
+	open(SPECFILE, $ProblemSpecFile) or
+	    die "$ProblemSpecFile not readable!";
 
-	    exists $gcnt{$an} or 
-		die "Article $an unknown, add it into db!";
-	    $thnr <= $gcnt{$an}->{'THE'} or 
-		die "$thnr is greater than the max. theorem number for $an";
+	while (<SPECFILE>) { ProcessArg($_); }
+	close(SPECFILE);
+    }
 
-	    $gproblems{$an}{'THE'}{$thnr} = (defined $3) ? $3 : ();
-	}
+    foreach $arg (@ARGV) { ProcessArg($arg); }
+}
 
-	elsif ($arg =~ /by_(\d+)_(\d+)_(\d+)_(\w+)/)
-	{
-	    exists $gcnt{$4} or 
-		die "Article $3 unknown, add it into db!";
-	    $3 <= $gcnt{$4}->{'CHK'} or 
-		die "$3 is greater than the max. checker problem number for $an";
-	    $gproblems{$4}{'CHK'}{$3} = $arg;
-	}
+#------------------------------------------------------------------------
+#  Function    : ProcessArg()
+#
+#  Check the arguments - article names and theorem numbers.
+#
+#  Input       : -
+#  Global Vars : %gcnt, @ARGV, %gproblems, 
+#  Side Effects: Can die, loads %gproblems
+#------------------------------------------------------------------------
 
-	else
-	{
-	    Usage();
-	}
+sub  ProcessArg
+{
+    my ($arg) = @_;
+    my ($thnr, $an);
+
+    if ($arg =~ /t(\d+)_(\w+)(\[.*\])?$/)
+    {
+	$thnr = $1;
+	$an   = $2;
+
+	exists $gcnt{$an} or 
+	    die "Article $an unknown, add it into db!";
+	$thnr <= $gcnt{$an}->{'THE'} or 
+	    die "$thnr is greater than the max. theorem number for $an";
+
+	$gproblems{$an}{'THE'}{$thnr} = (defined $3) ? $3 : ();
+    }
+
+    elsif ($arg =~ /by_(\d+)_(\d+)_(\d+)_(\w+)/)
+    {
+	exists $gcnt{$4} or 
+	    die "Article $3 unknown, add it into db!";
+	$3 <= $gcnt{$4}->{'CHK'} or 
+	    die "$3 is greater than the max. checker problem number for $an";
+	$gproblems{$4}{'CHK'}{$3} = $arg;
+    }
+
+    else
+    {
+	Usage();
     }
 }
+
 
 
 sub AddWholeArticles
@@ -358,6 +389,7 @@ GetOptions('skipbadrefs|s:i'   => \$SkipBadThRefsProblems,
 	   'tharticles|t=s'  => \@tharticles,
 	   'chkarticles|c=s' => \@chkarticles,
 	   'filter|f=i'      => \$FILTER,
+	   'specfile|F=s'    => \$ProblemSpecFile,
 	   'help|h'          => \$help,
 	   'man'             => \$man)
     or pod2usage(2);
@@ -365,7 +397,8 @@ GetOptions('skipbadrefs|s:i'   => \$SkipBadThRefsProblems,
 pod2usage(1) if($help);
 pod2usage(-exitstatus => 0, -verbose => 2) if($man);
 pod2usage(2) 
-    if (($#ARGV < 0) && ($#tharticles < 0) && ($#chkarticles < 0)); 
+    if (($#ARGV < 0) && !(defined $ProblemSpecFile) 
+	&& ($#tharticles < 0) && ($#chkarticles < 0)); 
 
 die "Set the MPTPDIR shell variable, or run with the -b option"
     if ("/" eq $MPTPDIR);
