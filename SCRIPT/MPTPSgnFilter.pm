@@ -30,9 +30,7 @@ BEGIN {
     use Exporter   ();
 
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(@GIGNORED
-                      &CollectSymbols
-		      &GetDirectSyms
+    @EXPORT      = qw(&GetDirectSyms
 		      &GetAllBgSyms
 		      &FilterBgWithSyms
 		      &AddSymsAndSpecials
@@ -41,11 +39,6 @@ BEGIN {
     %EXPORT_TAGS = ( FIELDS => [ @EXPORT_OK, @EXPORT ] );
 }
 use vars (@EXPORT, @EXPORT_OK);
-
-
-# Symbols we ignore, variables have to be handled specially
-@GIGNORED = ( "", "and", "equal", "forall", "not", "implies", 
-	      "equiv", "or", "exists", "true", "false");
 
 # Following are caching hashes useful when processing
 # multiple problems.
@@ -78,72 +71,6 @@ use vars (@EXPORT, @EXPORT_OK);
 # the processing info for them is hidden in the 'SPC' slot.
 
 my @GCACHETOKENS = ('DCO', 'PRO', 'DEF', 'CLF', 'CLC', 'DRE');
-
-#------------------------------------------------------------------------
-#  Function    : CollectSymbols()
-#
-#  Get the nonvariable user symbols from a string.
-#  
-#  Assumptions: 
-#   We split on non-word characters, so no dfg or user symbol
-#   may contain them, and every word character is part of some
-#   dfg or user symbol. All variables start with a capital letter.
-#
-#  Input       : string containing dfg and user symbols
-#  Global Vars : -
-#  Output      : hash of the symbol
-#------------------------------------------------------------------------
-
-sub CollectSymbols
-{
-    my %symbols;
-    my $symb;
-
-    @symbols{ (split /\W+/, $_[0]) } = ();
-
-    foreach $symb (@GIGNORED)
-    {
-	delete $symbols{$symb};
-    }
-
-    foreach $symb (keys %symbols)
-    {
-	delete $symbols{$symb} if( $symb =~ m/^[A-Z].*/ );
-    }
-
-    return  \%symbols;
-
-}
-
-#------------------------------------------------------------------------
-#  Function    : GetMatchingParen()
-#
-#  Return the index of matching parenthesis in string for  
-#  given position (only in forward direction). 
-#  More such funcs would call for Prolog implementation,
-#  but I need very little of this now and try to keep things
-#  simple.
-#
-#  Input       : string, position, initial balance 
-#                (can be negative - no sense now)
-#  Global Vars : -
-#  Output      : the matching paren position
-#------------------------------------------------------------------------
-
-sub GetMatchingParen
-{
-    my ($s, $beg, $balance) = @_;
-
-    $_ = $s;
-    pos($_) = 1 + $beg;    # match from here
-
-    while( ($balance != 0) && ( m/([()])/gc ) ) 
-    {
-	$balance += ($1 eq '(')? 1 : -1;
-    }
-
-    return pos($_);
-}
 
 #------------------------------------------------------------------------
 #  Function    : InitCache()
