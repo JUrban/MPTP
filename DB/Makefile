@@ -85,7 +85,12 @@ verify:  links $(stdverify)
 %.rlc: %.evl
 	-$(RELCPREM) -q $* >> $(RLCLOG)	
 
+$(addsuffix .rlc,$(NONSTDMIZPREF)): %.rlc: %.evl
+	@echo \! > $*.rlc
+
 stdrlc	=  $(addsuffix .rlc,$(STDMIZPREF))
+nonstdrlc	= $(addsuffix .rlc,$(NONSTDMIZPREF))
+allrlc	= $(stdrlc) $(nonstdrlc)
 
 rlcfiles: links $(RELCPREM) $(stdrlc)
 	@echo "All rlc done"
@@ -219,7 +224,7 @@ pl_check:  # $(allpl)
 # .bys files are produced by $(FO_TOOL), we gzip them immediately.
 # and move to $(BYSDIR)
 
-%.dsf: %.evl $(FO_TOOL)
+%.dsf: %.evl %.rlc $(FO_TOOL)
 	$(FO_TOOL) $(FO_FLAGS) $* >> $(FOLOG)
 	@if test ! -s $@; then touch $@; fi
 	@if test -f $*.bys; then \
@@ -231,7 +236,7 @@ stddsf	=  $(addsuffix .dsf,$(STDMIZPREF))
 
 # This overrides the implicit pattern for error causing files
 
-$(addsuffix .dsf,$(NONSTDMIZPREF)): %.dsf: %.evl $(FO_TOOL)
+$(addsuffix .dsf,$(NONSTDMIZPREF)): %.dsf: %.evl %.rlc $(FO_TOOL)
 	-$(FO_TOOL) $(FO_FLAGS) $* >> $(FOLOG)
 	@if test ! -s $@; then touch $@; fi
 	@if test -f $*.bys; then \
