@@ -46,12 +46,12 @@ while(<IN1>)
     $_ =~ m/(.*)=(.*)/;
     die 'files not in sync $1,$name' unless ($1 == $name);
     my $rfs = $2;
-    while($rfs =~ m/([0-9A-Z_]+):(sch |def )?(\d+)/g)
+    while($rfs =~ m/([0-9A-Z_]+):(sch|def|th)? ?(\d+)/g)
     {
 	my ($art,$nr,$what);
-	$what = (defined $2)? $2:'th ';
+	$what = (defined $2)? $2:'th';
 	($art, $nr) = ($1, $3);
-	$refs1{$art . ':' . $what . $3} = {};
+	$refs1{$art . ':' . $what . ' ' . $3} = ();
     }
     foreach $ref (keys %refs1)
     {
