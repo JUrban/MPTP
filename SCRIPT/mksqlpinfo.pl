@@ -1,18 +1,30 @@
 #!/usr/bin/perl -w
-#------------------------------------------------------------------------
-#
-# File  : mksqlpinfo.pl (Create fast loadable file fro the SQL 
-#                        probleminfo table)
-#
-# then format is given by MPTPResults.sql
-#
-# Author: Josef Urban
-#
-# Changes
-#
-# <1> Tue Mar 18 20:37:55 2003
-#     New
-#------------------------------------------------------------------------
+
+=head1 NAME
+
+mksqlpinfo.pl ( Create fast loadable file for the SQL
+                        probleminfo table)
+
+=head1 SYNOPSIS
+
+  # Create fast loadable probleminfo table
+
+ export MPTPDIR=/home/urban/MPTP
+ cd $MPTPDIR/SCRIPT
+ ./mksqlpinfo.pl > /tmp/pinfo
+
+  # Setup the mptpresults db, load probleminfo into it
+
+ mysql> create database mptpresults;
+ mysql> source /home/urban/MPTP/SCRIPT/MPTPResults.sql;
+ mysql> LOAD DATA INFILE "/tmp/pinfo" INTO TABLE probleminfo;
+
+=head1 CONTACT
+
+Josef Urban urban@kti.ms.mff.cuni.cz
+
+=cut
+
 use strict;
 use MPTPDebug;
 use MPTPUtils;
