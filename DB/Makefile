@@ -131,6 +131,11 @@ $(MOMMTYPES): $(workingtptp)
 	@for i in $(workingtyp); do cat $$i >> $(MOMMTYPES); done
 	@echo "$(MOMMTYPES) created"
 
+# create all.cb and all.tb for fast loading
+
+all.cb: $(MOMMTYPES)
+	time $(MOMM) -s -y $(MOMMTYPES) -a -t nsaccept -w all $(workingths) >/dev/null
+
 # NOT needed for simple interreduction
 
 $(REDSCRIPT): $(workingtptp) $(MOMMTYPES)
@@ -149,8 +154,9 @@ $(REDSCRIPT): $(workingtptp) $(MOMMTYPES)
 	$(MOMM) -s -f -t nbsaccept -w $*.tptp -T $*.ths1 $*.ths.cb $*.tptp.cb >> $(REDLOG)
 
 
-red_simple: $(workingtptp) $(addsuffix .cb,$(workingtptp)) \
-            $(addsuffix .ths.cb,$(mommworking))
+$(REDTMPDIR)/red_simple: $(workingtptp) $(addsuffix .cb,$(workingtptp)) \
+           $(addsuffix .ths.cb,$(mommworking))
+	touch $(REDTMPDIR)/red_simple
 	@echo "Simple iterreduction finished"
 
 # this is hack to allow usqge of $(REDSCRIPT)
@@ -172,6 +178,29 @@ restore_tptp:
 	@for i in $(workingths); do mv -f $$i.backup $$i; done
 	@for i in $(workingtyp); do mv -f $$i.backup $$i; done	
 	@echo "tptp and ths files restored up"
+
+momm_dist: $(REDTMPDIR)/red_simple all.cb $(MOMMTYPES)
+	@if test ! -d $(BASEDIR)/MoMM; then \
+	  echo "MoMM dir must exist and contain the source"; exit 1; \
+	fi; \
+	cp -a -L all.cb all.tb all.typ $(BASEDIR)/MoMM; \
+	cd $(BASEDIR); \
+	cp -a -L $(MOMM) $(RELCPREM) $(TPTPEXP) $(TPTPVER) MoMM; \
+	cd MoMM; \
+	rm -r -f ths tptp typ; \
+	mkdir  ths tptp typ; \
+	cd ths; \
+	for i in $(addprefix $(DBDIR)/,$(workingths)); do \
+              gzip -c $$i.cb> `basename $$i`.gz ; done; \
+	cd ../tptp; \
+	for i in $(addprefix $(DBDIR)/,$(workingtptp)); do \
+              gzip -c $$i.cb> `basename $$i`.gz ; done; \
+	cd ..; \
+	for i in $(addprefix $(DBDIR)/,$(workingtyp)); do \
+              cp -a -L $$i typ; done; \
+	cd $(BASEDIR); \
+	tar czf MoMM.tar.gz MoMM;
+	@echo "MoMM distribution created"
 
 %.aa: %.evl $(REPORTER)
 	$(REPORTER) -q $* >> $(AA_LOG)
