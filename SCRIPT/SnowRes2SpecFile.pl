@@ -60,10 +60,16 @@ the target, which is correct for current version of Snow (3.0.3).
 use strict;
 use Pod::Usage;
 use Getopt::Long;
+use MPTPDebug;
+use MPTPUtils;
+use MPTPSgnFilter;
 
 my $glimit;     # How many references we want
 my $reftable;   # Translation table for references (*.refnr),
                 # one refname in line, 0-based
+
+my $gonly_smaller_refs = 1;   # Only smaller refs are allowed
+my $gone_setof = 1;           # Allow at most one reference containing "setof"
 
 my @gnrref;     # Nr2Ref array for references
 
@@ -83,11 +89,80 @@ pod2usage(2) unless (defined $reftable);
 
 $glimit    = 30 unless(defined($glimit));
 
+LoadCounts();
+
+PrintCnts() if(GWATCHED & WATCH_COUNTS);
+PrintRcns() if(GWATCHED & WATCH_COUNTS);
+
+OpenDbs();
+
 # Load refnr
 open(REFNR, "$reftable") or die "Cannot read refnr file";
 while($_=<REFNR>) { chop; push(@gnrref, $_); };
 close REFNR;
 
+
+
+sub LOG_SETOF () { 1 }
+
+open(SETOF_REPORT, ">setofs.report") if LOG_SETOF;
+
+
+
+sub ArticleDef
+{
+   my ($axiom, $target) = @_;
+   my $ax_name = $gnrref[$axiom];
+   my $tg_name = $gnrref[$target];
+   my ($nr, $an);
+
+   $ax_name =~ /^([dt])(\d+)_(\w+)$/  or die "Bad ref: $ax_name at $axiom";
+
+   if('t' eq $1) {return 0;}
+
+   ($nr, $an) = ($2, $3);
+   $tg_name =~ /^t(\d+)_(\w+)$/  or die "Bad ref: $tg_name at $axiom";
+
+   return ($2 eq $an);
+}
+
+sub CheckSetof
+{
+   my ($axiom) = @_;
+   my $name = $gnrref[$axiom];
+   my ($rkind, $nr, $an, $rpos, $content, $conj_syms);
+
+   $name =~ /^([dt])(\d+)_(\w+)$/  or die "Bad ref: $name at $axiom";
+
+   $rkind = ('d' eq $1) ? 'DEF' : 'THE';
+   ($nr, $an) = ($2, $3);
+   $rpos   = $nr + $grcn{$an}->{$rkind} - 1;
+   $D{$rkind}[$rpos]         =~ m/^\s*formula\((.*)\n[dt](\d+)_(\w+)\)$/s
+           or die "Bad $rkind fla at $rpos:$_,$1,$2,$3\n";
+
+   $content      =  $1;
+
+   $conj_syms =  CollectSymbols($content);
+
+   print SETOF_REPORT "setof in $name\n"
+     if(LOG_SETOF && (exists $conj_syms->{'setof'}));
+
+   return (exists $conj_syms->{'setof'});
+}
+
+
+sub SetofOK
+{
+   my ($axiom,$setof_count) = @_;
+   my $res = CheckSetof($axiom);
+
+   $$setof_count += ($res)? 1 : 0;
+
+   print SETOF_REPORT "rejecting\n"
+     if(LOG_SETOF && ($res && ($$setof_count > 1)));
+
+   return  (!($res) || ($$setof_count < 2));
+}
 
 # Skip to the first example
 do { $_=<> } while($_ && !($_=~/Example/));
@@ -97,12 +172,15 @@ die "STDIN contains no example predictions!"
 
 
 my @predictions = ();
+my $target = 0;
+my $setof_count;
+my $gexample_nr = 0;
 
 while ($_)
 {
     if (/Example/)        # Start a new example
     {
-	if($#predictions > -1)   # cleanup the previous if any
+	if($gexample_nr++ > 0)   # cleanup the previous if any
 	{
 	    print (join(",", @predictions), "]\n");
 	}
@@ -111,10 +189,16 @@ while ($_)
 
 	/Example.*:(.*)/ or die "Bad Example $_";
 	my @wanted = split /\, /, $1;
-	my $target = $wanted[0];
+	$target = $wanted[0];
 
 	die "Target $target has no name in $reftable!"
-	    unless (defined $gnrref[$target]);
+	    unless (exists $gnrref[$target]);
+
+	if($gone_setof)
+	{
+	  $setof_count = (CheckSetof($target))? 1 : 0;
+	}
+	  
 
 	print ($gnrref[$target], "[");
     }
@@ -125,7 +209,9 @@ while ($_)
 	die "Reference $axiom has no name in $reftable!"
 	    unless (defined $gnrref[$axiom]);
 
-	if((1+$#predictions) < $glimit)
+	if(((1+$#predictions) < $glimit)
+	   && (!($gonly_smaller_refs) || ($axiom < $target) || ArticleDef($axiom,$target))
+	   && (!($gone_setof) || SetofOK($axiom,\$setof_count)))
 	{
 	    push(@predictions, $gnrref[$axiom]);
 	}
@@ -133,7 +219,7 @@ while ($_)
     $_=<>;
 }
 
-if($#predictions > -1)   # cleanup the last one
+if($gexample_nr > 0)   # cleanup the last one
 {
     print (join(",", @predictions), "]\n");
 }
