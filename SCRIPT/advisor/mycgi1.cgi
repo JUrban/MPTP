@@ -32,9 +32,11 @@ sub GetQuerySymbols
 
     while($fla =~ /\b([0-9A-Z_]+):(func|pred|attr|mode|aggr|sel|struct)[ .]([0-9]+)/g)
     {
-	my $aname	= lc($1);
-	my $sname	= $gconstrs{$2}."$3"."_".$aname;
+#    MPTP-like constructors commented, we now expect Query-like format
+#	my $aname	= lc($1);
+#	my $sname	= $gconstrs{$2}."$3"."_".$aname;
 
+        my $sname	= $1.":".$2." ".$3;
 	$syms->{$sname}	= ();	# counts can be here later
 	$res++;
     }
@@ -101,22 +103,27 @@ unless($text_mode)
 }
 
 my $megrezurl = "http://megrez.mizar.org/cgi-bin/meaning.cgi";
+my $merakurl  = "http://merak.pb.bialystok.pl/cgi-bin/mmlquery/meaning";
 while(++$i < $outnr)
 {
     my $ref = $grefs->[$i];
     my ($kind, $nr, $an);
-    $ref=~/^([td])([0-9]+)_(.*)/ or die "Bad reference $ref\n";
-    ($kind, $nr, $an) = ($1, $2, $3);
-    $kind = ($kind eq "t")? "th" : "def";
+#    MPTP-like constructors commented, we now expect Query-like format
+#    $ref=~/^([td])([0-9]+)_(.*)/ or die "Bad reference $ref\n";
+#    ($kind, $nr, $an) = ($1, $2, $3);
+#    $kind = ($kind eq "t")? "th" : "def";
+    $ref=~/^([A-Z0-9_]+):(th|def|sch) (\d+)/ or die "Bad reference $ref\n";
+    ($an, $kind, $nr) = ($1, $2, $3);
 
     if($text_mode)
     {
-	my $nkind = ($kind eq "def")?"def ":"";
+#	my $nkind = ($kind eq "def")?"def ":"";
+	my $nkind = ($kind eq "th")? "": $kind . " ";
 	print uc($an) . ":" . $nkind . $nr . "\n";
     }
     else
     {
-	print "<a href=\"".$megrezurl."?article=".$an."&kind=".$kind
+	print "<a href=\"".$merakurl."?article=".$an."&kind=".$kind
 	    ."&number=".$nr."\" target=entry>".uc($an).":".$kind." "
 		.$nr."</a>\n";
     }
