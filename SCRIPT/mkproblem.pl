@@ -20,6 +20,7 @@ mkproblem.pl -tcard_1 -trolle -ccard_2 t39_absvalue by_25_16_2_absvalue
    --filter=<arg>,          -f<arg>
    --definitions=<arg>,     -D<arg>
    --specfile=<arg>,        -F<arg>
+   --allarticles,           -A
    --help,                  -h
    --man
 
@@ -67,13 +68,13 @@ and definitions must be explicitely specified as references
 to be included as axioms for the problems.
 1 means that all definitions from the 'definitions' directive
 are included as direct references.
-2 is as 1, but the definitions are treated as background formulas
+2 is like 1, but only definitions from the current article
+are used.
+3 is as 1, but the definitions are treated as background formulas
 instead, i.e. if filtering is activated, they are included only
 if the defined symbols appear during the fixpoint computation.
-3 is like 1, but only definitions from the current article
-are used.
-4 is like 2, again with current article definitions only.
-Options 3 and 4 are useful when we know that the definitions from
+4 is like 3, again with current article definitions only.
+Options 2 or 4 are useful when we know that the definitions from
 other articles have been taken care of explicitly (e.g. by some
 previous experience like Mizar Proof Advisor), but this does not
 extend to the current article, which may be new in some sense.
@@ -81,6 +82,11 @@ extend to the current article, which may be new in some sense.
 =item B<<< --specfile=<arg>, -B<F><arg> >>>
 
 Read problem specifications from the file <arg>.
+
+=item B<<< --allarticles, -B<A> >>>
+
+Create theorem problems for all articles that are present in
+databases.
 
 =item B<<< --help, -h >>>
 
@@ -158,6 +164,7 @@ my $gaddme = 1;			# Tells to add article to its env. directives
 my $FILTER = 1;
 my $DEFINITIONS = 0;
 my $ProblemSpecFile;            # Input file containing problem specifications
+my $DoAllArticles = 0;          # Do all articles in %gcnt
 
 sub Usage 
 {
@@ -440,6 +447,7 @@ GetOptions('skipbadrefs|s:i'   => \$SkipBadThRefsProblems,
 	   'filter|f=i'      => \$FILTER,
 	   'definitions|D=i' => \$DEFINITIONS,
 	   'specfile|F=s'    => \$ProblemSpecFile,
+	   'allarticles|A'   => \$DoAllArticles,
 	   'help|h'          => \$help,
 	   'man'             => \$man)
     or pod2usage(2);
@@ -448,7 +456,8 @@ pod2usage(1) if($help);
 pod2usage(-exitstatus => 0, -verbose => 2) if($man);
 pod2usage(2) 
     if (($#ARGV < 0) && !(defined $ProblemSpecFile) 
-	&& ($#tharticles < 0) && ($#chkarticles < 0)); 
+	&& ($#tharticles < 0) && ($#chkarticles < 0)
+	&& !($DoAllArticles)); 
 
 pod2usage(2) if($DEFINITIONS > DEFS_SELF_AS_BG);
 
@@ -460,6 +469,12 @@ LoadCounts();
 
 PrintCnts() if(GWATCHED & WATCH_COUNTS);
 PrintRcns() if(GWATCHED & WATCH_COUNTS);
+
+if($DoAllArticles)
+{
+    @tharticles = (sort {$gcnt{$a}->{'ORD'} <=> $gcnt{$b}->{'ORD'}}
+		   keys %gcnt)
+}
 
 ProcessArgs();
 OpenDbs();
