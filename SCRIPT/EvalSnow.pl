@@ -13,9 +13,77 @@ EvalSnow.pl [scalelimit] ( Print the statitics abot Snow predictions)
 
  snow -train -I $NAME.train -F $NAME.net -B :0-41079
  snow -test -o allboth -I $NAME.test -F $NAME.net -B :0-41079 | LimitSnow.pl 100 > $NAME.res
- EvalSnow.pl 100  < $NAME.res > $NAME.eval
+ EvalSnow.pl -l100  < $NAME.res > $NAME.eval
  gnuplot
  gnuplot> plot "$NAME.eval"
+
+
+ Options:
+   --limit=<arg>,           -l<arg>
+   --examplegraph=<arg>,    -e<arg>
+   --windowsize=<arg>,      -w<arg>
+   --ingore_self,           -I
+   --output=<arg>,          -o<arg>
+   --all,                   -A
+   --help,                  -h
+   --man
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<<< --limit=<arg>, -l<arg> >>>
+
+Upper limit for the hit scale, if creating scale.
+The default is 100.
+
+=item B<<< --examplegraph=<arg>, -e<arg> >>>
+
+Create graph ranging over all examples instead of
+the overall hit scale. <arg> determines the smoothing
+method: none if 1, cumulative average if 2, sliding
+average if 3 (size of the smoothing window is then 
+specified with the -w parameter). The --ignore_self 
+parameter also influences these results.
+
+=item B<<< --windowsize=<arg>, -w<arg> >>>
+
+Size of the smoothing window if using the -e3
+(sliding average) method. Default is 100.
+
+=item B<<< --ingore_self, -B<I> >>>
+
+Do not include into the algorithms the reference to itself
+in examples. This is advisable if the theorem labels are
+newly introduced to the learning system in the testing
+examples, and so we only can hope for getting their references
+as advice.
+
+=item B<<< --output=<arg>, -o<arg> >>>
+
+Direct the output into this file. If the -A option
+is used, append this name with the method number
+(see the -e option) for each graph.
+
+=item B<<< --all, -B<A> >>>
+
+Print graphs using all vailable methods (see the -e option).
+Output file stem has to be supplied for this with 
+the -o option.
+
+=item B<<< --help, -h >>>
+
+Print a brief help message and exit.
+
+=item B<<< --man >>>
+
+Print the manual page and exit.
+
+=back
+
+=head1 CONTACT
+
+Josef Urban urban@kti.ms.mff.cuni.cz
 
 =head1 APPENDIX
 
@@ -24,13 +92,21 @@ Description of functions defined here.
 =cut
 
 use strict;
+use Getopt::Long;
+use Pod::Usage;
 
-# the limit for the scale
-my $glimit = shift(@ARGV);
-my ($gstat,$gscale)     ;
+my $glimit       = 100;   # Limit for the scale
+my $gwindow_size = 100;   # Size of the smoothing window
+my $GraphMethod  = 0;     # Which graph we want
+my $DoAllGraphs  = 0;     # Print all graphs
 
-$glimit = 100 unless(defined($glimit));
+# Do not count the reference to itself - testings when it is not available yet
+# Some theorems may now be without refs - proved only by local private items
+# or schemes - then at least 1 reference always
+my $gignore_self = 0;
 
+my ($help, $man, $outfilename);
+my ($gstat,$gscale) ;
 
 =head2   ParseStats()
 
@@ -71,18 +147,81 @@ sub ParseStats
     return \@stat;
 }
 
+sub min { my ($x,$y) = @_; ($x <= $y)? $x : $y }
+sub max { my ($x,$y) = @_; ($x <= $y)? $y : $x }
+
 sub PrintStats
 {
     my ($stat) = @_;
     my $rec;
     foreach $rec (@$stat)
     {
-	print "$rec->[0]:";
-	print join(',', @{$rec->[1]}), "\n";
+	print OUT "$rec->[0]:";
+	print OUT join(',', @{$rec->[1]}), "\n";
     }
 }
 
-sub min { my ($x,$y) = @_; ($x <= $y)? $x : $y }
+
+# Ratio for each
+sub PrintStats1
+{
+    my ($stat) = @_;
+    my ($i,$j,$rec);
+    for($i=0; $i <= $#{@$stat}; $i++)
+    {
+	$rec = $stat->[$i];
+	$j = (1+$#{$rec->[1]})/max(1, $rec->[0] - $gignore_self);
+	print OUT "$i $j\n";
+    }
+}
+
+# Running average of ratios
+sub PrintStats2
+{
+    my ($stat) = @_;
+    my ($i,$j,$rec,$avg);
+    my $sum = 0;
+    for($i=0; $i <= $#{@$stat}; $i++)
+    {
+	$rec = $stat->[$i];
+	$j = (1+$#{$rec->[1]})/max(1,$rec->[0] - $gignore_self);
+	$sum += $j;
+	$avg = $sum/(1+$i);
+	print OUT "$i $avg\n";
+    }
+}
+
+
+# Sliding average of ratios across last $window_size ratios
+sub PrintStats3
+{
+    my ($stat,$window_size) = @_;
+    my ($i,$j,$k,$rec,$rec1,$avg);
+    my $sum = 0;
+    for($i=0; $i < $window_size; $i++)
+    {
+	$rec = $stat->[$i];
+	$j = (1+$#{$rec->[1]})/max(1,$rec->[0] - $gignore_self);
+	$sum += $j;
+    }
+    for(; $i <= $#{@$stat}; $i++)
+    {
+	$k   = $i - $window_size;
+	$rec = $stat->[$i];
+	$j = (1+$#{$rec->[1]})/max(1,$rec->[0] - $gignore_self);
+	$rec1 = $stat->[$k];
+	$sum += $j;
+	$sum -= (1+$#{$rec1->[1]})/max(1,$rec1->[0] - $gignore_self);
+
+	$avg = $sum/$window_size;
+	print OUT "$i $avg\n";
+    }
+}
+
+
+
+
+
 
 =head2 CreateScale()
 
@@ -117,7 +256,7 @@ sub CreateScale
 	    {
 		$j++;
 	    }
-	    $oneratio = $j/min($rec->[0], $i);
+	    $oneratio = $j/min(max(1,$rec->[0] - $gignore_self), $i);
 	    $scale[$i] += $oneratio;
 	}
 	$scale[$i] = $scale[$i]/$#{@$stat};
@@ -143,13 +282,59 @@ sub PrintScale
 
     for($i=1; $i <= $#{@$scale}; $i++)
     {
-	print "$i $scale->[$i]\n";
+	print OUT "$i $scale->[$i]\n";
     }
 }
 
 
+Getopt::Long::Configure ("bundling","no_ignore_case");
+
+GetOptions('limit|l=i'         => \$glimit,
+	   'examplegraph|e=i'  => \$GraphMethod,
+	   'windowsize|w=i'    => \$gwindow_size,
+	   'ingore_self|I'     => \$gignore_self,
+	   'output|o=s'        => \$outfilename,
+	   'all|A'             => \$DoAllGraphs,
+	   'help|h'            => \$help,
+	   'man'               => \$man)
+    or pod2usage(2);
+
+pod2usage(1) if($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if($man);
+pod2usage(2) if(($GraphMethod > 3) || ($DoAllGraphs && !($outfilename)));
+
 $gstat = ParseStats();
 
-# PrintStats($gstat);
-$gscale = CreateScale($glimit, $gstat);
-PrintScale($gscale);
+if($DoAllGraphs)
+{
+    open(OUT, ">".$outfilename."0");
+    $gscale = CreateScale($glimit, $gstat); 
+    PrintScale($gscale);
+    close(OUT);
+    open(OUT, ">".$outfilename."1");
+    PrintStats1($gstat);
+    close(OUT);
+    open(OUT, ">".$outfilename."2");
+    PrintStats2($gstat);
+    close(OUT);
+    open(OUT, ">".$outfilename."3");
+    PrintStats3($gstat,$gwindow_size);
+    close(OUT);
+}
+else
+{
+    if($outfilename) { open(OUT, ">$outfilename"); }
+    else { open(OUT, ">&STDOUT"); }
+
+    if ($GraphMethod == 0) {
+	$gscale = CreateScale($glimit, $gstat); PrintScale($gscale);
+    } elsif ($GraphMethod == 1) {
+	PrintStats1($gstat);
+    } elsif ($GraphMethod == 2) {
+	PrintStats2($gstat);
+    } elsif ($GraphMethod == 3) {
+	PrintStats3($gstat,$gwindow_size);
+    } else {
+	die "Bad examplegraph kind: $GraphMethod";
+    }
+}
