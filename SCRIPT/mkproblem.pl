@@ -349,7 +349,7 @@ sub DoProblems
 
 
 
-Getopt::Long::Configure ("bundling");
+Getopt::Long::Configure ("bundling","no_ignore_case");
 
 GetOptions('skipbadrefs|s:i'   => \$SkipBadThRefsProblems,
 	   'allownonex|a:i'    => \$AllowNonExistant,
