@@ -2,6 +2,7 @@
 
 use strict;
 use CGI;
+use IO::Socket;
 
 my $query	 = new CGI;
 my $input_fla	 = $query->param('Formula');
@@ -36,13 +37,60 @@ sub GetQuerySymbols
     return $res;
 }
 
+
+sub ReceiveFrom #($socket)
+{
+  my($socket) = $_[0];
+  my($length, $char, $msg, $message, $received);
+
+  $received = 0;
+  $message = "";
+  while ($received < 4)
+  {
+    recv $socket, $msg, 4 - $received, 0;
+    $received += length $msg;
+    $message .= $msg;
+  }
+  $length = unpack("N", $message);
+
+  $received = 0;
+  $message = "";
+  while ($received < $length)
+  {
+    recv $socket, $msg, $length - $received, 0;
+    $received += length $msg;
+    $message .= $msg;
+  }
+
+  return $message;
+}
+
+my $ghost = "localhost";
+my $gport = "60000";
+
 sub GetRefs
 {
     my ($syms, $limit) = @_;
-    my @res = (keys %$syms);
+    my $msg = pack("a", (keys %$syms));
+    my ($msgin, @res);
+
+    my $EOL = "\015\012";
+    my $BLANK = $EOL x 2;
+    my $remote = IO::Socket::INET->new( Proto     => "tcp",
+					PeerAddr  => $ghost,
+					PeerPort  => $gport,
+				      );
+    unless ($remote) { die "cannot connect to advisor daemon on $ghost" }
+    $remote->autoflush(1);
+    send $remote, pack("N", length $msg), 0;
+    print $remote $msg;
+    $msgin = ReceiveFrom($remote);
+    @res = unpack("a", $msgin);
+    send $remote, pack("N", 0), 0;
+    close $remote;
+
     return \@res;
 }
-
 
 print $query->header, 
     $query->start_html('Proof Advisor Output');
