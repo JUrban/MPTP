@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <title>Mizar Proof Advisor</title>
+<script language="JavaScript">
+</script>
+  </head>
+
+  <body>
+    <center>
+    <H3 ALIGN=CENTER><FONT COLOR="#0099ff"><FONT SIZE=5 STYLE="font-size: 22pt">
+    <B>Mizar Proof Advisor</B>
+    </FONT></FONT></H3>
+    </center>
+
+    <dl>
+      <dt>
+        <font size="+1">
+          <strong>Use <a href=http://megrez.mizar.org/cgi-bin/treeview.cgi?item=CLOSURE1:th.40>MML Query constructor format<a/> for input formulas<br><br></strong>
+        </font>
+	 (This is the Tree view link in the Query browser - or use Mizar Mode for Emacs directly without browser)<br>
+      </dt>      
+      <dd>
+        <FORM METHOD="POST"  ACTION="http://lipa.ms.mff.cuni.cz/cgi-bin/mycgi1.cgi">
+         <br>
+          <center>
+          <table>
+            <tr>
+              <td colspan=2>
+                <textarea valign=top NAME="Formula" rows=20 cols=60 wrap=virtual></textarea><br><br>
+              </td>
+            </tr>
+	    <tr>
+              <td align=right>
+	      Number of requested hints:
+                <INPUT TYPE="text" NAME="Limit" VALUE="30" SIZE="5">
+              </td>
+            </tr>
+            <tr>
+              <td align=right>
+                <INPUT TYPE="submit" VALUE="Send">
+                <INPUT TYPE="reset" VALUE="Clear">
+              </td>
+            </tr>
+          </table>
+          </center>
+        </FORM>
+      </dd>
+    </dl>
+  </body>
+</html>
