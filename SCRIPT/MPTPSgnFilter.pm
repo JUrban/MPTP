@@ -7,23 +7,7 @@
 # Does signature-based filtering of the background
 # article theories.
 #
-# Assumed naming conventions:
-# theorems:              "t\d+_\w+"
-# canceled theorems:     "t\d+_canceled_\w+"
-# definitions:           "d\d+_\w+"
-# canceled definitions:  "d\d+_canceled_\w+"
-# requirements:          "rq\d+_\w+" 
-# exclusters:            "ec\d+_\w+"
-# funcclusters:          "fc\d+_\w+" 
-# condclusters:          "cc\d+_\w+" 
-# properties:            "p\d+_[kr]_\w+(__\d+_\w+)?"
-# mode types:            "dtm\d+_\w+(__\d+_\w+)?"
-# structmode types:      "dtl\d+_\w+" 
-# func types:            "dtk\d+_\w+(__\d+_\w+)?"
-# selector types:        "dtu\d+_\w+" 
-# aggregfunc types:      "dtg\d+_\w+" 
-# mode existence:        "dem\d+_\w+(__\d+_\w+)?"
-#
+# Assumed naming conventions - see %GFLA_DB_KIND
 # Checker problems:
 # normal reference:      "t\d+_r_by_\d+_\d+_\w+"
 # local const. type:     "t\d+_t_by_\d+_\d+_\w+"
@@ -589,8 +573,19 @@ sub AddSpecial
 	    }
 
 # m1_subset_1 is "Element", k5_ordinal2 is "NAT"
-	    
-	    if(exists $C->{'SPC'}{"numerals"})
+
+	    if($GMML_VERSION eq '3_44_763')
+	    {
+		if(exists $C->{'SPC'}{"arytm"})
+		{
+		    $fla = "\nformula( m1_subset_1($sym,k5_ordinal2),"
+			."\nndb$sym\_arytm)";
+		    $addedbg->{'NDB'}{"ndb$sym\_arytm"} = $fla;
+		    @$newsyms{ ("m1_subset_1", "k5_ordinal2") } = ();
+		    $result++;
+		}
+	    }
+	    elsif(exists $C->{'SPC'}{"numerals"})
 	    {
 
 		$fla = "\nformula( m1_subset_1($sym,k5_ordinal2),"
