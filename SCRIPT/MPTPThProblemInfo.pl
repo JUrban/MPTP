@@ -67,16 +67,16 @@ if ($#ARGV <= 0)
 
 $SkipBadThRefsProblems = 0;  # Do symbols for thhes with bad refs too
 
+=head2 AddWholeArticles()
 
-#------------------------------------------------------------------------
-#  Function    : AddWholeArticles()
-#
-#  Add the theorems to be process
-#
-#  Input       : -
-#  Global Vars : %gcnt, @ARGV, %gproblems, 
-#  Side Effects: Can die, loads %gproblems
-#------------------------------------------------------------------------
+  Title	       : AddWholeArticles()
+  Usage	       : AddWholeArticles()
+  Function     : Add the theorems to be processed
+  Returns      : -
+  Global Vars  : %gcnt, @ARGV, %gproblems, 
+  Args	       : -
+  Side Effects : Can die, loads %gproblems
+=cut
 sub AddWholeArticles
 {
     my ($i);
