@@ -9,6 +9,7 @@ MPTPMakeSnowDB.pl ( Data generating script for the Snow learning system)
 MPTPMakeSnowDB.pl [options] filename
 
  Options:
+   --definitions,           -d
    --basedir=<arg>,         -b<arg>
    --help,                  -h
    --man
@@ -16,6 +17,11 @@ MPTPMakeSnowDB.pl [options] filename
 =head1 OPTIONS
 
 =over 8
+
+=item B<<< --definitions, -d >>>
+
+Also output training data for definitions into a separate
+.deftrain file. They are: definition_symbols, definition_number.
 
 =item B<<< --basedir=<arg>, -b<arg> >>>
 
@@ -55,6 +61,7 @@ use Pod::Usage;
 use Getopt::Long;
 use MPTPDebug;
 use MPTPUtils;
+use MPTPSgnFilter;
 
 my $fieldsepar  = ",";       # Snow field separator
 my $linesepar   = ":\n";     # Snow line separator
@@ -121,6 +128,45 @@ sub AddNumbers
     }
 }
 
+sub TranslateDefs
+{
+   my $i = -1;
+   my ($content, $nr, $aname, $dname, $conj_syms, @conj_syms1);
+
+   ONE: while (exists $D{'DEF'}[++$i])
+   {
+      $D{'DEF'}[$i]         =~ m/^\s*formula\((.*)\nd(\d+)_(\w+)\)$/s
+           or die "Bad DEF fla at $i:$_,$1,$2,$3\n";
+
+      ($content, $nr, $aname)      =  ($1, $2, $3);
+
+      next ONE if($aname =~ /^canceled_.*$/);
+
+      $dname = "d".$nr."_".$aname;
+
+      (exists $grefnr{$dname}) or die "Bad definitions $dname";
+
+      $conj_syms =  CollectSymbols($content);
+
+      @conj_syms1 = ();
+      foreach $_ (keys %$conj_syms)
+      {
+	   push(@conj_syms1,$gsymnr{$_})
+	     if(exists($gsymnr{$_}) && ("" ne $gsymnr{$_}))
+      }
+
+      if(-1 == $#conj_syms1)
+      {
+	 print "No symbols found in: $dname\n!";
+      }
+      else
+      {
+	 print DEFTRAIN join(",", @conj_syms1),    $fieldsepar, 
+		"$grefnr{$dname}",      $linesepar;
+      }
+    }
+}
+
 sub Translate
 {
     my ($ref,$pinfo);
@@ -180,11 +226,12 @@ sub Translate
     }
 }
 
-my ($help, $man);
+my ($help, $man, $dodefs);
 Getopt::Long::Configure ("bundling");
 
 GetOptions('basedir|b=s'     => \$MPTPDIR,
 	   'memlimit|m=i'    => \$DBMEMLIMIT,
+	   'definitions|d'   => \$dodefs,
 	   'help|h'          => \$help,
 	   'man'             => \$man)
     or pod2usage(2);
@@ -222,5 +269,11 @@ open(TRAIN, ">$fname.train") or die "$fname.train not writable!";
 open(ARCH, ">$fname.arch") or die "$fname.arch not writable!";
 
 Translate();
+if($dodefs)
+{
+   open(DEFTRAIN, ">$fname.deftrain") or die "$fname.deftrain not writable!";
+   TranslateDefs();
+}
+
 
 print ARCH "-W :0-$#gnrref\n";
