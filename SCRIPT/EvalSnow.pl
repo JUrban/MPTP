@@ -109,6 +109,7 @@ my $gwindow_size = 100;   # Size of the smoothing window
 my $GraphMethod  = 0;     # Which graph we want
 my $DoAllGraphs  = 0;     # Print all graphs
 my $DoMatrix     = 0;     # Print matrices for 3D graphs
+my $gstep        = 10;     # The step for creating matrices
 
 # Do not count the reference to itself - testings when it is not available yet
 # Some theorems may now be without refs - proved only by local private items
@@ -192,7 +193,7 @@ sub BelowLimit
 # Ratio for each
 sub PrintStats1
 {
-    my ($stat,$limit,$matrix) = @_;
+    my ($stat,$limit,$matrix,$step) = @_;
     my ($i,$j,$rec);
 
     for($i=0; $i <= $#{@$stat}; $i++)
@@ -200,7 +201,7 @@ sub PrintStats1
 	$rec = $stat->[$i];
 	my $l = ($matrix)? 1 : $limit;
 
-	for( ; $l <= $limit; $l++)
+	for( ; $l <= $limit; $l += $step)
 	{
 	    $j = BelowLimit($rec,$l)/max(1, $rec->[0] - $gignore_self);
 	    print OUT "$j\t";
@@ -212,7 +213,7 @@ sub PrintStats1
 # Running average of ratios
 sub PrintStats2
 {
-    my ($stat,$limit,$matrix) = @_;
+    my ($stat,$limit,$matrix,$step) = @_;
     my ($i,$j,$rec,$avg);
     my @sum;
     for($i=0; $i <= $#{@$stat}; $i++)
@@ -220,7 +221,7 @@ sub PrintStats2
 	$rec = $stat->[$i];
 	my $l = ($matrix)? 1 : $limit;
 
-	for( ; $l <= $limit; $l++)
+	for( ; $l <= $limit; $l += $step)
 	{
 	    $j = BelowLimit($rec,$l)/max(1,$rec->[0] - $gignore_self);
 	    $sum[$l] += $j;
@@ -235,7 +236,7 @@ sub PrintStats2
 # Sliding average of ratios across last $window_size ratios
 sub PrintStats3
 {
-    my ($stat,$window_size,$limit,$matrix) = @_;
+    my ($stat,$window_size,$limit,$matrix,$step) = @_;
     my ($i,$j,$rec,$rec1,$avg);
     my @sum;
 
@@ -244,7 +245,7 @@ sub PrintStats3
 	my $l = ($matrix)? 1 : $limit;
 	$rec = $stat->[$i];
 
-	for( ; $l <= $limit; $l++)
+	for( ; $l <= $limit; $l += $step)
 	{
 	    $sum[$l] += BelowLimit($rec,$l)/max(1,$rec->[0] - $gignore_self);
 	}
@@ -256,7 +257,7 @@ sub PrintStats3
 	$rec  = $stat->[$i];
 	$rec1 = $stat->[$i - $window_size];
 
-	for( ; $l <= $limit; $l++)
+	for( ; $l <= $limit; $l += $step)
 	{
 	    $sum[$l] += BelowLimit($rec,$l)/max(1,$rec->[0] - $gignore_self);
 	    $sum[$l] -= BelowLimit($rec1,$l)/max(1,$rec1->[0] - $gignore_self);
@@ -357,13 +358,13 @@ if($DoAllGraphs)
     PrintScale($gscale);
     close(OUT);
     open(OUT, ">".$outfilename."1");
-    PrintStats1($gstat,$glimit,$DoMatrix);
+    PrintStats1($gstat,$glimit,$DoMatrix,$gstep);
     close(OUT);
     open(OUT, ">".$outfilename."2");
-    PrintStats2($gstat,$glimit,$DoMatrix);
+    PrintStats2($gstat,$glimit,$DoMatrix,$gstep);
     close(OUT);
     open(OUT, ">".$outfilename."3");
-    PrintStats3($gstat,$gwindow_size,$glimit,$DoMatrix);
+    PrintStats3($gstat,$gwindow_size,$glimit,$DoMatrix,$gstep);
     close(OUT);
 }
 else
@@ -374,11 +375,11 @@ else
     if ($GraphMethod == 0) {
 	$gscale = CreateScale($glimit, $gstat); PrintScale($gscale);
     } elsif ($GraphMethod == 1) {
-	PrintStats1($gstat,$glimit,$DoMatrix);
+	PrintStats1($gstat,$glimit,$DoMatrix,$gstep);
     } elsif ($GraphMethod == 2) {
-	PrintStats2($gstat,$glimit,$DoMatrix);
+	PrintStats2($gstat,$glimit,$DoMatrix,$gstep);
     } elsif ($GraphMethod == 3) {
-	PrintStats3($gstat,$gwindow_size,$glimit,$DoMatrix);
+	PrintStats3($gstat,$gwindow_size,$glimit,$DoMatrix,$gstep);
     } else {
 	die "Bad examplegraph kind: $GraphMethod";
     }
