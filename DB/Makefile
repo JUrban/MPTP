@@ -133,7 +133,8 @@ MOMMTYPES   = $(DBDIR)/all.typ
 REDMEMLIMIT = 300000000
 
 MOMM	= $(ADDBIN)/MoMM
-REDLOG	= $(DBDIR)/00red.log
+REDLOG	= /dev/null  
+# REDLOG  = $(DBDIR)/00red.log
 
 REDTMPDIR   = $(DBDIR)/REDTMP
 REDPLANNER  = $(ADDSCRIPT)/reduce.pl
@@ -175,10 +176,10 @@ $(REDSCRIPT): $(workingtptp) $(MOMMTYPES)
 	$(MOMM) -s -f -t nbsaccept -w $*.tptp -T $*.ths1 $*.ths.cb $*.tptp.cb >> $(REDLOG)
 
 
-momm_ths_cb: tptp_export $(addsuffix .ths.cb,$(mommworking))
+momm_ths_cb: $(addsuffix .ths.cb,$(mommworking))
 	@echo "THS clausebanks done"
 
-momm_tptp_cb: tptp_export $(addsuffix .cb,$(workingtptp))
+momm_tptp_cb: $(addsuffix .cb,$(workingtptp))
 	@echo "TPTP clausebanks done"
 
 
@@ -202,8 +203,30 @@ red_simple_stats: red_simple
 	@echo "Stats collected in red_simple_stats"
 
 full_tptp_test: red_simple
-	time $(MOMM) -s $(addsuffix .cb,$(workingtptp)) >>/dev/null
+	time $(MOMM) -s $(addsuffix .cb,$(workingtptp)) >>$(REDLOG)
 
+all_tptp.cb: momm_tptp_cb
+	time $(MOMM) -s -f -t nbsaccept -w all_tptp $(addsuffix .cb,$(workingtptp)) >>$(REDLOG)
+
+red_tptp.cb: # all_tptp.cb all.cb
+	time $(MOMM) -s -f -b all.tb -t nbsaccept -w red_tptp -T all1 all.cb all_tptp.cb >> $(REDLOG)
+
+red_tptp1.cb: # all_tptp.cb all.cb
+	time $(MOMM) -s -f -y $(MOMMTYPES) -t nbsaccept -w red_tptp1 -T all2 all1.cb all_tptp.cb >> $(REDLOG)
+
+
+
+# getpos3 rints counts for each subsumer, use to get the strongest
+# on the first line of 00test1
+tptp_tmp_res:
+	rm -f 00test
+	for i in [a-z]/*.tptp.cb; do ./getpos3.pl $$i>>00test; done
+	sort -g -k1,2 --reverse 00test >00test1
+
+tptp_cb_res:
+	rm -f 00test
+	./getpos3.pl all_tptp.cb >>00test
+	sort -g -k1,2 --reverse 00test >00test1
 
 # this is hack to allow usqge of $(REDSCRIPT)
 # now used for comparing versions of tptpexp too, so typs backed up too
@@ -251,6 +274,30 @@ momm_dist: red_simple all.cb $(MOMMTYPES)
 	cd $(BASEDIR); \
 	tar czf MOMM.tar.gz MOMM;
 	@echo "MoMM distribution created"
+
+momm_dist_raw: # red_simple all.cb $(MOMMTYPES)
+	@if test ! -d $(BASEDIR)/MOMM.raw; then \
+	  echo "MoMM.raw dir must exist and contain the source"; exit 1; \
+	fi;
+	cp -a -L all.typ $(BASEDIR)/MOMM;
+	cd $(BASEDIR); 
+	cp -a -L $(MOMM) $(RELCPREM) $(TPTPEXP) $(TPTPVER) $(BASEDIR)/MOMM; 
+	@echo "Copying ths files"
+	@cd $(BASEDIR)/MOMM; \
+	rm -r -f ths tptp typ;\
+	mkdir  ths tptp typ; \
+	for i in $(addprefix $(DBDIR)/,$(workingths)); do \
+              cp -a -L $$i  ths; done; 
+	@echo "Copying tptp files, will take a while"
+	@cd $(BASEDIR)/MOMM; \
+	for i in $(addprefix $(DBDIR)/,$(workingtptp)); do \
+              cp -a -L $$i tptp ; done; 
+	@cd $(BASEDIR)/MOMM; \
+	for i in $(addprefix $(DBDIR)/,$(workingtyp)); do \
+              cp -a -L $$i typ; done; 
+	cd $(BASEDIR); \
+	tar czf MOMM.raw.tar.gz MOMM.raw;
+	@echo "MoMM.raw distribution created"
 
 %.aa: %.evl $(REPORTER)
 	$(REPORTER) -q $* >> $(AA_LOG)
