@@ -31,9 +31,12 @@ forall([B1,B2],
       v1_xboole_0(B2)))),
 rq7_boole).
 formula(
-    forall([X,Y],
-      implies( and( v1_xboole_0(X), not( equal(X,Y))),
-               not( v1_xboole_0(Y)))),
+forall([B1,B2],
+  not( 
+    and( v1_xboole_0(B1)
+    ,and( 
+    not( equal(B1,B2)),
+      v1_xboole_0(B2))))),
 rq8_boole).
 formula(
 v1_xboole_0(0),

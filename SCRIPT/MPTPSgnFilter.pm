@@ -566,12 +566,12 @@ sub AddSpecial
 
 # m1_subset_1 is "Element", k5_ordinal2 is "NAT"
 	    
-	    if(exists $C->{'SPC'}{"arytm"})
+	    if(exists $C->{'SPC'}{"numerals"})
 	    {
 
 		$fla = "\nformula( m1_subset_1($sym,k5_ordinal2),"
-		    ."\nndb$sym\_arytm)";
-		$addedbg->{'NDB'}{"ndb$sym\_arytm"} = $fla;
+		    ."\nndb$sym\_numerals)";
+		$addedbg->{'NDB'}{"ndb$sym\_numerals"} = $fla;
 		@$newsyms{ ("m1_subset_1", "k5_ordinal2") } = ();
 		$result++;
 	    }

@@ -1,18 +1,82 @@
 formula(
-    forall([X],
-      equal(k3_real_1(X,0),X)),
+forall([B1],
+implies( 
+  v1_xreal_0(B1),
+  equal(k2_xcmplx_0(B1,0),B1))),
 rq1_real).
 formula(
-    forall([X],
-      equal(k4_real_1(0,X),0)),
+forall([B1],
+implies( 
+  v1_xreal_0(B1),
+  equal(k3_xcmplx_0(B1,0),0))),
 rq2_real).
 formula(
-    forall([X],
-      equal(k4_real_1(X,1),X)),
+forall([B1],
+implies( 
+  v1_xreal_0(B1),
+  equal(k3_xcmplx_0(1,B1),B1))),
 rq3_real).
 formula(
-      equal(k1_real_1(0),0),
+forall([B1],
+implies( 
+  v1_xreal_0(B1),
+  equal(k6_xcmplx_0(B1,0),B1))),
 rq4_real).
 formula(
-      equal(k2_real_1(1),1),
+forall([B1],
+implies( 
+  v1_xreal_0(B1),
+  equal(k7_xcmplx_0(0,B1),0))),
 rq5_real).
+formula(
+forall([B1],
+implies( 
+  v1_xreal_0(B1),
+  equal(k7_xcmplx_0(B1,1),B1))),
+rq6_real).
+formula(
+forall([B1,B2],
+implies( 
+  and( v1_xreal_0(B1),
+       v1_xreal_0(B2)),
+  not( 
+    and( r1_xreal_0(B1,B2)
+    ,and( v2_xreal_0(B1),
+      not( v2_xreal_0(B2))))))),
+rq7_real).
+formula(
+forall([B1,B2],
+implies( 
+  and( v1_xreal_0(B1),
+       v1_xreal_0(B2)),
+  not( 
+    and( r1_xreal_0(B1,B2)
+    ,and( v3_xreal_0(B2),
+      not( v3_xreal_0(B1))))))),
+rq8_real).
+formula(
+forall([B1],
+implies( 
+  v1_xreal_0(B1),
+  and( 
+  not( 
+    and( v2_xreal_0(B1),
+      r1_xreal_0(B1,0))),
+    not( 
+      and( 
+      not( r1_xreal_0(B1,0)),
+        not( v2_xreal_0(B1))))))),
+rq9_real).
+formula(
+forall([B1],
+implies( 
+  v1_xreal_0(B1),
+  and( 
+  not( 
+    and( v3_xreal_0(B1),
+      r1_xreal_0(0,B1))),
+    not( 
+      and( 
+      not( r1_xreal_0(0,B1)),
+        not( v3_xreal_0(B1))))))),
+rq10_real).

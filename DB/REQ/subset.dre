@@ -1,19 +1,38 @@
 formula(
-    forall([X,Y],
-     implies( r2_hidden(X,Y),
-              m1_subset_1(X,Y))),
+forall([B1,B2],
+  not( 
+    and( r2_hidden(B1,B2),
+      not( m1_subset_1(B1,B2))))),
 rq1_subset).
 formula(
-    forall([X,Y],
-     equiv( r1_tarski(X,Y), m1_subset_1(X,k1_zfmisc_1(Y)))),
+forall([B1,B2],
+  not( 
+    and( m1_subset_1(B1,B2)
+    ,and( 
+    not( v1_xboole_0(B2)),
+      not( r2_hidden(B1,B2)))))),
 rq2_subset).
 formula(
-    forall([X,Y,Z],
-     implies( and( r2_hidden(X,Y), m1_subset_1(Y,k1_zfmisc_1(Z))),
-       and( m1_subset_1(X,Z), not( v1_xboole_0(Z))))),
+forall([B1,B2],
+  and( 
+  not( 
+    and( m1_subset_1(B1,k1_zfmisc_1(B2)),
+      not( r1_tarski(B1,B2)))),
+    not( 
+      and( r1_tarski(B1,B2),
+        not( m1_subset_1(B1,k1_zfmisc_1(B2))))))),
 rq3_subset).
 formula(
-    forall([X,Y],
-     implies( and( m1_subset_1(X,Y), not( v1_xboole_0(Y))),
-	r2_hidden(X,Y))),
+forall([B1,B2,B3],
+  not( 
+    and( r2_hidden(B1,B2)
+    ,and( m1_subset_1(B2,k1_zfmisc_1(B3)),
+      not( m1_subset_1(B1,B3)))))),
 rq4_subset).
+formula(
+forall([B1,B2,B3],
+  not( 
+    and( r2_hidden(B1,B2)
+    ,and( m1_subset_1(B2,k1_zfmisc_1(B3)),
+      v1_xboole_0(B3))))),
+rq5_subset).
