@@ -46,7 +46,8 @@ BEGIN {
     use Exporter   ();
 
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(&CollectSymbols
+    @EXPORT      = qw(@GIGNORED
+                      &CollectSymbols
 		      &GetDirectSyms
 		      &GetAllBgSyms
 		      &FilterBgWithSyms
@@ -59,8 +60,8 @@ use vars (@EXPORT, @EXPORT_OK);
 
 
 # Symbols we ignore, variables have to be handled specially
-my @GIGNORED = ( "", "and", "equal", "forall", "not", "implies", 
-		 "equiv", "or", "exists", "true", "false");
+@GIGNORED = ( "", "and", "equal", "forall", "not", "implies", 
+	      "equiv", "or", "exists", "true", "false");
 
 # Following are caching hashes useful when processing
 # multiple problems.
