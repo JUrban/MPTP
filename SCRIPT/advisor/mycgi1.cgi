@@ -21,6 +21,8 @@ my %gconstrs      =
      'struct' , 'l'
     );
 
+sub min { my ($x,$y) = @_; ($x <= $y)? $x : $y }
+
 # returns nr. of syms with repetitions
 sub GetQuerySymbols
 {
@@ -38,6 +40,7 @@ sub GetQuerySymbols
     return $res;
 }
 
+# limit not used here yet
 sub GetRefs
 {
     my ($syms, $limit) = @_;
@@ -55,7 +58,7 @@ sub GetRefs
 	exit;
     }
     $remote->autoflush(1);
-    print $remote join(",",(keys %$syms)) . $BLANK;
+    print $remote join(",",(keys %$syms)) . "\n";
     $msgin = <$remote>;
     @res  = split(/\,/, $msgin);
     close $remote;
@@ -79,9 +82,25 @@ if((length($input_fla) < 1)
 
 $grefs = GetRefs(\%gsyms, $input_limit);
 
-foreach $ref (@$grefs)
+my $i = -1;
+my $outnr = min($input_limit, 1+$#{ @$grefs});
+
+print "<pre>";
+print $query->h2("References sorted by expected importance");
+
+my $megrezurl = "http://megrez.mizar.org/cgi-bin/meaning.cgi";
+while(++$i < $outnr)
 {
-    print "$ref\n\n";
+    my $ref = $grefs->[$i];
+    my ($kind, $nr, $an);
+    $ref=~/^([td])([0-9]+)_(.*)/ or die "Bad reference $ref\n";
+    ($kind, $nr, $an) = ($1, $2, $3);
+    $kind = ($kind eq "t")? "th" : "def";
+
+    print "<a href=\"".$megrezurl."?article=".$an."&kind=".$kind
+	."&number=".$nr."\" target=entry>".uc($an).":".$kind." "
+	    .$nr."</a>\n";
 }
 
-$query->end_html;
+print "<pre/>";
+print $query->end_html;
