@@ -262,7 +262,8 @@ sub DoProblems
     my ($an,$nr,$prb,%refnbrs,$ref,$myfname,$chkrefs,
 	$mybg,$mysymbols,$dirkind,$j,%bgcache,%bgsyms,$pname);
 
-    foreach $an (keys %gproblems)
+    foreach $an (sort {$gcnt{$a}->{'ORD'} <=> $gcnt{$b}->{'ORD'}} 
+		 keys %gproblems)
     {
 	undef %bgcache;
 	undef %bgsyms;
