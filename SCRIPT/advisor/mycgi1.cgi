@@ -71,7 +71,7 @@ my $gport = "60000";
 sub GetRefs
 {
     my ($syms, $limit) = @_;
-    my $msg = pack("a", (keys %$syms));
+#    my $msg = pack("a", (keys %$syms));
     my ($msgin, @res);
 
     my $EOL = "\015\012";
@@ -82,18 +82,23 @@ sub GetRefs
 				      );
     unless ($remote) { die "cannot connect to advisor daemon on $ghost" }
     $remote->autoflush(1);
-    send $remote, pack("N", length $msg), 0;
-    print $remote $msg;
-    $msgin = ReceiveFrom($remote);
-    @res = unpack("a", $msgin);
-    send $remote, pack("N", 0), 0;
+ #   send $remote, pack("N", length $msg), 0;
+ #   print $remote $msg;
+    print $remote join(",",(keys %$syms)) . $BLANK;
+    $msgin = "";
+#    while( $_=<$remote>) { $msgin = $msgin . $_ };
+    $msgin = <$remote>;
+    @res  = split(/\,/, $msgin);
+#    $msgin = ReceiveFrom($remote);
+#    @res = unpack("a", $msgin);
+#    send $remote, pack("N", 0), 0;
     close $remote;
 
     return \@res;
 }
 
-print $query->header, 
-    $query->start_html('Proof Advisor Output');
+print $query->header;
+print $query->start_html("Proof Advisor Output");
 #    $query->h1('Hello World');
 
 if((length($input_fla) < 1)
