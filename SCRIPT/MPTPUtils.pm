@@ -598,6 +598,10 @@ sub GetThRefs
       }
 	    
       $dkind = ($rkind eq 't')?'THE':'DEF';
+
+      exists($grcn{$an1}) or
+	die "Bad reference $ref";
+
       push @{$refnbrs{$dkind}}, $nr1 + $grcn{$an1}->{$dkind} - 1; 
 
   }
