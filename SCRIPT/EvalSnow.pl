@@ -25,6 +25,7 @@ EvalSnow.pl [scalelimit] ( Print the statitics abot Snow predictions)
    --ingore_self,           -I
    --output=<arg>,          -o<arg>
    --all,                   -A
+   --matrix,                -M
    --help,                  -h
    --man
 
@@ -71,6 +72,14 @@ Print graphs using all vailable methods (see the -e option).
 Output file stem has to be supplied for this with 
 the -o option.
 
+=item B<<< --matrix, -B<M> >>>
+
+If building graph(s) ranging over all examples 
+(-e or -A options), rather than creating just one
+dependence for the limit value, create a matrix for
+a 3d graph of the dependences for all values ranging
+from 1 to the limit.
+
 =item B<<< --help, -h >>>
 
 Print a brief help message and exit.
@@ -99,6 +108,7 @@ my $glimit       = 100;   # Limit for the scale
 my $gwindow_size = 100;   # Size of the smoothing window
 my $GraphMethod  = 0;     # Which graph we want
 my $DoAllGraphs  = 0;     # Print all graphs
+my $DoMatrix     = 0;     # Print matrices for 3D graphs
 
 # Do not count the reference to itself - testings when it is not available yet
 # Some theorems may now be without refs - proved only by local private items
@@ -162,32 +172,62 @@ sub PrintStats
 }
 
 
+sub BelowLimit
+{
+    my($rec,$limit) = @_;
+    my @found_orders = @{$rec->[1]};
+    my $l;
+
+    if ((0 <= $#found_orders) && ($limit < $found_orders[$#found_orders]))
+    {
+	$l = 0;
+	$l++ while(($l <= $#found_orders) && ($found_orders[$l] <= $limit));
+    }
+    else {$l   = (1+$#found_orders);}
+
+    return $l;
+}
+
+
 # Ratio for each
 sub PrintStats1
 {
-    my ($stat) = @_;
+    my ($stat,$limit,$matrix) = @_;
     my ($i,$j,$rec);
+
     for($i=0; $i <= $#{@$stat}; $i++)
     {
 	$rec = $stat->[$i];
-	$j = (1+$#{$rec->[1]})/max(1, $rec->[0] - $gignore_self);
-	print OUT "$i $j\n";
+	my $l = ($matrix)? 1 : $limit;
+
+	for( ; $l <= $limit; $l++)
+	{
+	    $j = BelowLimit($rec,$l)/max(1, $rec->[0] - $gignore_self);
+	    print OUT "$j\t";
+	}
+	print OUT "\n";
     }
 }
 
 # Running average of ratios
 sub PrintStats2
 {
-    my ($stat) = @_;
+    my ($stat,$limit,$matrix) = @_;
     my ($i,$j,$rec,$avg);
-    my $sum = 0;
+    my @sum;
     for($i=0; $i <= $#{@$stat}; $i++)
     {
 	$rec = $stat->[$i];
-	$j = (1+$#{$rec->[1]})/max(1,$rec->[0] - $gignore_self);
-	$sum += $j;
-	$avg = $sum/(1+$i);
-	print OUT "$i $avg\n";
+	my $l = ($matrix)? 1 : $limit;
+
+	for( ; $l <= $limit; $l++)
+	{
+	    $j = BelowLimit($rec,$l)/max(1,$rec->[0] - $gignore_self);
+	    $sum[$l] += $j;
+	    $avg = $sum[$l]/(1+$i);
+	    print OUT "$avg\t";
+	}
+	print OUT "\n";
     }
 }
 
@@ -195,26 +235,35 @@ sub PrintStats2
 # Sliding average of ratios across last $window_size ratios
 sub PrintStats3
 {
-    my ($stat,$window_size) = @_;
-    my ($i,$j,$k,$rec,$rec1,$avg);
-    my $sum = 0;
+    my ($stat,$window_size,$limit,$matrix) = @_;
+    my ($i,$j,$rec,$rec1,$avg);
+    my @sum;
+
     for($i=0; $i < $window_size; $i++)
     {
+	my $l = ($matrix)? 1 : $limit;
 	$rec = $stat->[$i];
-	$j = (1+$#{$rec->[1]})/max(1,$rec->[0] - $gignore_self);
-	$sum += $j;
+
+	for( ; $l <= $limit; $l++)
+	{
+	    $sum[$l] += BelowLimit($rec,$l)/max(1,$rec->[0] - $gignore_self);
+	}
     }
+
     for(; $i <= $#{@$stat}; $i++)
     {
-	$k   = $i - $window_size;
-	$rec = $stat->[$i];
-	$j = (1+$#{$rec->[1]})/max(1,$rec->[0] - $gignore_self);
-	$rec1 = $stat->[$k];
-	$sum += $j;
-	$sum -= (1+$#{$rec1->[1]})/max(1,$rec1->[0] - $gignore_self);
+	my $l = ($matrix)? 1 : $limit;
+	$rec  = $stat->[$i];
+	$rec1 = $stat->[$i - $window_size];
 
-	$avg = $sum/$window_size;
-	print OUT "$i $avg\n";
+	for( ; $l <= $limit; $l++)
+	{
+	    $sum[$l] += BelowLimit($rec,$l)/max(1,$rec->[0] - $gignore_self);
+	    $sum[$l] -= BelowLimit($rec1,$l)/max(1,$rec1->[0] - $gignore_self);
+	    $avg = $sum[$l]/$window_size;
+	    print OUT "$avg\t";
+	}
+	print OUT "\n";
     }
 }
 
@@ -251,12 +300,7 @@ sub CreateScale
 	$scale[$i] = 0;
 	foreach $rec (@$stat)
 	{
-	    $j = 0;
-	    while(($j <= $#{$rec->[1]}) && ($rec->[1][$j] <= $i))
-	    {
-		$j++;
-	    }
-	    $oneratio = $j/min(max(1,$rec->[0] - $gignore_self), $i);
+	    $oneratio = BelowLimit($rec,$i)/min(max(1,$rec->[0] - $gignore_self), $i);
 	    $scale[$i] += $oneratio;
 	}
 	$scale[$i] = $scale[$i]/$#{@$stat};
@@ -295,6 +339,7 @@ GetOptions('limit|l=i'         => \$glimit,
 	   'ingore_self|I'     => \$gignore_self,
 	   'output|o=s'        => \$outfilename,
 	   'all|A'             => \$DoAllGraphs,
+	   'matrix|M'          => \$DoMatrix,
 	   'help|h'            => \$help,
 	   'man'               => \$man)
     or pod2usage(2);
@@ -312,13 +357,13 @@ if($DoAllGraphs)
     PrintScale($gscale);
     close(OUT);
     open(OUT, ">".$outfilename."1");
-    PrintStats1($gstat);
+    PrintStats1($gstat,$glimit,$DoMatrix);
     close(OUT);
     open(OUT, ">".$outfilename."2");
-    PrintStats2($gstat);
+    PrintStats2($gstat,$glimit,$DoMatrix);
     close(OUT);
     open(OUT, ">".$outfilename."3");
-    PrintStats3($gstat,$gwindow_size);
+    PrintStats3($gstat,$gwindow_size,$glimit,$DoMatrix);
     close(OUT);
 }
 else
@@ -329,11 +374,11 @@ else
     if ($GraphMethod == 0) {
 	$gscale = CreateScale($glimit, $gstat); PrintScale($gscale);
     } elsif ($GraphMethod == 1) {
-	PrintStats1($gstat);
+	PrintStats1($gstat,$glimit,$DoMatrix);
     } elsif ($GraphMethod == 2) {
-	PrintStats2($gstat);
+	PrintStats2($gstat,$glimit,$DoMatrix);
     } elsif ($GraphMethod == 3) {
-	PrintStats3($gstat,$gwindow_size);
+	PrintStats3($gstat,$gwindow_size,$glimit,$DoMatrix);
     } else {
 	die "Bad examplegraph kind: $GraphMethod";
     }
