@@ -149,10 +149,12 @@ red_simple: $(workingtptp) $(addsuffix .cb,$(workingtptp)) \
 	@echo "Simple iterreduction finished"
 
 # this is hack to allow usqge of $(REDSCRIPT)
+# now used for comparing versions of tptpexp too, so typs backed up too
 backup_tptp: $(workingtptp)
 	@for i in $(workingtptp); do mv -f $$i $$i.backup; done
-	@for i in $(workingths); do mv -f $$i $$i.backup; done	
-	@echo "tptp and ths files backud up"
+	@for i in $(workingths); do mv -f $$i $$i.backup; done
+	@for i in $(workingtyp); do mv -f $$i $$i.backup; done	
+	@echo "tptp and ths files backed up"
 
 fake_tptp:
 	@for i in $(mommworking);do \
@@ -162,7 +164,8 @@ fake_tptp:
 
 restore_tptp: 
 	@for i in $(workingtptp); do mv -f $$i.backup $$i; done
-	@for i in $(workingths); do mv -f $$i.backup $$i; done	
+	@for i in $(workingths); do mv -f $$i.backup $$i; done
+	@for i in $(workingtyp); do mv -f $$i.backup $$i; done	
 	@echo "tptp and ths files restored up"
 
 %.aa: %.evl $(REPORTER)
