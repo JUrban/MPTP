@@ -48,7 +48,7 @@ sub StartServer
 
     if(defined($pathtosnow))
     {
-	my $snowcommand = $pathtosnow." -server " . $snowport 
+	my $snowcommand = "nohup ". $pathtosnow." -server " . $snowport
 	    . " -o allboth -F " . $filestem . ".net -A " 
 		. $filestem . ".arch > /dev/null 2>&1 &";
 
