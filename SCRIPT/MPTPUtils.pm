@@ -22,6 +22,7 @@ use strict;
 use warnings;
 use DB_File;
 use MPTPDebug;
+use MPTPAssert;
 
 our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 BEGIN {
@@ -29,6 +30,7 @@ BEGIN {
 
     @ISA         = qw(Exporter);
     @EXPORT      = qw($MPTPDIR
+                      $GMML_VERSION
 		      $DBMEMLIMIT
 		      $AllowNonExistant
 		      $SkipBadThRefsProblems
@@ -39,7 +41,8 @@ BEGIN {
 		      $MPTPTMPDBDIR
 		      %GFNAMES 
 		      @GCNTOKENS   
-		      @GDBTOKENS    
+		      @GDBTOKENS
+                      %GFLA_DB_KIND
 		      @GDIRTOKENS
 		      @GBGTOKENS 
 		      %GBGNAMES
@@ -61,6 +64,9 @@ BEGIN {
 		      &Env2List
 		      &CreateBg
 		      &ThCanceled
+                      &GetFlaDBKind
+                      &CreateNDBFlaByName
+                      &GetFlaByName
 		      &GetThRefs
 		      &GetChkRefs
 		      &Arity
@@ -81,6 +87,10 @@ use vars (@EXPORT, @EXPORT_OK);
 $MPTPDIR       = $ENV{MPTPDIR}."/";
 
 #$MPTPDIR       = "/g/miz_source/dbsupp1/dbtest/foo/";
+
+# MML version
+$GMML_VERSION  = '3_50_773';
+
 
 # How much memory you want to give for db caching.
 # Setting it to higher values increases speed, but only up to the
@@ -137,6 +147,26 @@ my $gsymbskip     = length("arity");
 @GDBTOKENS = ('THE','DEF','DCO','DEM','PRO','CLE','CLF',
 	      'CLC','DSF','DSP','THR','DRE','EVL','DEFSYMS');
 
+# Mapping of starts of formula names to their databases
+# The exception are now the ndb formulas for arithmetics
+%GFLA_DB_KIND  =  (
+		   't'   ,   'THE',    # theorems         "t\d+_\w+"
+                                       # canceled thms    "t\d+_canceled_\w+"
+		   'd'   ,   'DEF',    # definitions	  "d\d+_\w+"
+		                       # canceled defss   "d\d+_canceled_\w+"
+		   'rq'	 ,   'DRE',    # requirements	  "rq\d+_\w+"
+		   'ec'	 ,   'CLE',    # exclusters	  "ec\d+_\w+"
+		   'fc'	 ,   'CLF',    # funcclusters	  "fc\d+_\w+"
+		   'cc'	 ,   'CLC',    # condclusters	  "cc\d+_\w+"
+		   'p'	 ,   'PRO',    # properties	  "p\d+_[kr]\d+_\w+(__\d+_\w+)?"
+		   'dtm' ,   'DCO',    # mode types	  "dtm\d+_\w+(__\d+_\w+)?"
+		   'dtl' ,   'DCO',    # structmode types "dtl\d+_\w+"
+		   'dtk' ,   'DCO',    # func types	  "dtk\d+_\w+(__\d+_\w+)?"
+		   'dtu' ,   'DCO',    # selector types	  "dtu\d+_\w+"
+		   'dtg' ,   'DCO',    # aggregfunc types "dtg\d+_\w+"
+		   'dem' ,   'DEM',    # mode existence	  "dem\d+_\w+(__\d+_\w+)?"
+		   'ndb' ,   'NDB',    # ndb flas         "ndb\d+_\w+"
+		   );
 
 # These are conveniences for directives
 
@@ -572,6 +602,102 @@ sub ThCanceled
     my ($thnr) = @_;
 
     return (0 < index($D{'THR'}[$thnr], "_canceled_"));
+}
+
+# Yields a DB kind, the exception are now the ndb formulas for arithmetics
+sub GetFlaDBKind
+{
+    my ($namestart) = @_;
+    die "Bad name start: $namestart"
+	if(ASSERT_BAD_FRM_NAMES && !(exists $GFLA_DB_KIND{$namestart}));
+
+    return $GFLA_DB_KIND{$namestart};
+}
+
+# This decodes the names created by MPTPSgnFilter::AddSpecial,
+# ##FIXME: for MML 773, I produced two different flas for the
+#          numerals requirement - taking only the first now
+sub CreateNDBFlaByName
+{
+    my ($nr,$rest) = @_;
+    my $fla;
+ SWITCH: for($rest)
+    {
+	if(/^boole$/)
+	{
+	    $fla = "\nformula( not(v1_xboole_0($nr)),"
+		."\nndb$nr\_boole)";
+	    last SWITCH;
+	}
+	if(/^numerals$/)
+	{
+	    $fla = "\nformula( m1_subset_1($nr,k5_ordinal2),"
+		."\nndb$nr\_numerals)";
+	    last SWITCH;
+	};
+	if(/^arytm$/)
+	{
+	    $fla = "\nformula( m1_subset_1($nr,k5_ordinal2),"
+			."\nndb$nr\_arytm)";
+	    last SWITCH;
+	};
+	die "Bad NDB name: $rest";
+    }
+    return $fla;
+}
+
+=head2   GetFlaByName()
+
+  Title        : GetFlaByName()
+  Usage        : $flastring = GetFlaByName('t1_abian');
+  Function     : Look up the formula in DB by its MPTP name.
+                 This is now slow for clusters and constructors
+  Returns      : the complete DFG formula
+  Global Vars  : %D,%GEXACT_ACCESS_DBKINDS,%GFLA_DB_KIND
+  Args         : formula name
+
+=cut
+
+# databases with exact (constant time) lookup based on article and number
+my %GEXACT_ACCESS_DBKINDS = ( 'THE', 1, 'DEF', 1, 'DRE', 1 );
+
+# ##TODO: nonexistant article names like in CreateBg
+sub GetFlaByName
+{
+    my ($fname) = @_;
+    my ($namestart, $nr, $rest) = ($fname =~ m/^([a-z]+)(\d+)_(.*)$/);
+    my $dbkind  = GetFlaDBKind($namestart);
+
+    if($dbkind eq 'NDB') { return CreateNDBFlaByName($nr,$rest); }
+
+# ##REQUIRE: entries in exact DBs have simple names (no __ like in redefs)
+    if(exists $GEXACT_ACCESS_DBKINDS{$dbkind})
+    {
+	if($rest =~ m/^canceled_(\w+)$/) { $rest = $1; }
+
+	exists($grcn{$rest}) or die "Bad formula name: $fname";
+
+	return $D{$dbkind}[$nr + $grcn{$rest}->{$dbkind} - 1];
+    }
+
+    if($rest =~ m/^.*__\d+_(\w+)$/)  { $rest = $1 }    # 'PRO' too if redef
+    elsif($dbkind eq 'PRO')
+    {
+	$rest =~ m/^[kr]\d+_(\w+)$/ or die "Bad formula name: $fname";
+	$rest = $1;
+    }
+
+    my $start = $grcn{$rest}->{$dbkind};  # Start of e.g. .dco in $D{'DCO'}
+    my $end   = $start + $gcnt{$rest}->{$dbkind};
+    my $j     = $start;
+    for( ; $j < $end; $j++)
+    {
+	$D{$dbkind}[$j]          =~ m/^\s*formula\((.*)\n(\w+)\)$/s
+	    or die "Bad DCO fla at $j:$1,$2\n";
+
+	return $D{$dbkind}[$j] if($2 eq $fname);
+    }
+    die "Formula name $fname not found in $dbkind for article $rest\n";
 }
 
 #------------------------------------------------------------------------
