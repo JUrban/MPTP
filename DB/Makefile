@@ -38,7 +38,7 @@ links:	dirs $(MMLLAR)
 	@for f in $(ALLMIZ); do \
 		d=$${f:0:1};\
 		fm=$$f.$(MIZ);\
-		if test ! -L $$d/$$fm; then \
+		if test ! -e $$d/$$fm; then \
 			$(LN) $(MFILES)/mml/$$fm $$d/$$fm; \
 		fi;\
 	done;
@@ -89,6 +89,14 @@ stdirr	= $(addsuffix .irr,$(STDMIZPREF))
 irr_util: links $(stdirr)
 	@echo "All irrelevant done"
 
+# the edtfile - risky
+move_edt:
+	@for i in $(STDMIZPREF); do mv $$i."$$""-$$"  $$i.miz; done
+
+set_mml_time:
+	@for i in $(STDMIZPREF); do touch -r $(MMLLAR) $$i.miz; done
+	@echo "Miz files made as old as MML"
+
 # Relcprem - we have to ignore errors now, should be fixed in
 # relcprem
 
@@ -112,7 +120,7 @@ rlcfiles: links $(RELCPREM) $(stdrlc)
 # These cause errors to $(FO_TOOL) now in the DNF module
 # (too many clause from one formula)
 
-badtptp = g/gate_1 g/gate_2 g/gate_3 g/gate_4 g/gate_5 p/polynom1
+badtptp = g/gate_1 g/gate_2 g/gate_3 g/gate_4 g/gate_5 # p/polynom1
 
 mommworking = $(filter-out $(badtptp),$(STDMIZPREF))
 workingtptp = $(addsuffix .tptp,$(mommworking))
@@ -125,8 +133,7 @@ MOMMTYPES   = $(DBDIR)/all.typ
 REDMEMLIMIT = 300000000
 
 MOMM	= $(ADDBIN)/MoMM
-REDLOG	= /dev/null
-
+REDLOG	= $(DBDIR)/00red.log
 
 REDTMPDIR   = $(DBDIR)/REDTMP
 REDPLANNER  = $(ADDSCRIPT)/reduce.pl
@@ -144,7 +151,11 @@ $(MOMMTYPES): $(workingtptp)
 # create all.cb and all.tb for fast loading
 
 all.cb: $(MOMMTYPES)
-	time $(MOMM) -s -y $(MOMMTYPES) -a -t nsaccept -w all $(workingths) >/dev/null
+	time $(MOMM) -s -y $(MOMMTYPES) -a -t nsaccept -w all $(workingths) >>$(REDLOG)
+
+all_untyped.cb: tptp_export
+	time $(MOMM) -s -a -t nsaccept -w all_untyped $(workingths) >>$(REDLOG)
+
 
 # NOT needed for simple interreduction
 
@@ -164,10 +175,35 @@ $(REDSCRIPT): $(workingtptp) $(MOMMTYPES)
 	$(MOMM) -s -f -t nbsaccept -w $*.tptp -T $*.ths1 $*.ths.cb $*.tptp.cb >> $(REDLOG)
 
 
-$(REDTMPDIR)/red_simple: $(workingtptp) $(addsuffix .cb,$(workingtptp)) \
+momm_ths_cb: tptp_export $(addsuffix .ths.cb,$(mommworking))
+	@echo "THS clausebanks done"
+
+momm_tptp_cb: tptp_export $(addsuffix .cb,$(workingtptp))
+	@echo "TPTP clausebanks done"
+
+
+red_simple: $(workingtptp) $(addsuffix .cb,$(workingtptp)) \
            $(addsuffix .ths.cb,$(mommworking))
-	touch $(REDTMPDIR)/red_simple
+	touch red_simple
 	@echo "Simple iterreduction finished"
+
+red_simple_stats: red_simple
+	@rm -r -f red_simple_stats
+	@echo "Collecting statistics from"
+	@for i in $(mommworking); do \
+	  LANG=C;\
+	  echo $$i; \
+	  a=`grep -c "^accept" $$i.ths`; \
+	  b=`grep -c "^nsaccept" $$i.ths.cb`; \
+	  c=`grep -c "^accept" $$i.tptp`; \
+	  d=`grep -c "^nbsaccept" $$i.tptp.cb`; \
+	  echo  $$i  "	" $$a "	" $$b "	" $$c "	" $$d >> red_simple_stats; \
+	done;
+	@echo "Stats collected in red_simple_stats"
+
+full_tptp_test: red_simple
+	time $(MOMM) -s $(addsuffix .cb,$(workingtptp)) >>/dev/null
+
 
 # this is hack to allow usqge of $(REDSCRIPT)
 # now used for comparing versions of tptpexp too, so typs backed up too
@@ -189,27 +225,31 @@ restore_tptp:
 	@for i in $(workingtyp); do mv -f $$i.backup $$i; done	
 	@echo "tptp and ths files restored up"
 
-momm_dist: $(REDTMPDIR)/red_simple all.cb $(MOMMTYPES)
-	@if test ! -d $(BASEDIR)/MoMM; then \
+momm_dist: red_simple all.cb $(MOMMTYPES)
+	@if test ! -d $(BASEDIR)/MOMM; then \
 	  echo "MoMM dir must exist and contain the source"; exit 1; \
-	fi; \
-	cp -a -L all.cb all.tb all.typ $(BASEDIR)/MoMM; \
-	cd $(BASEDIR); \
-	cp -a -L $(MOMM) $(RELCPREM) $(TPTPEXP) $(TPTPVER) MoMM; \
-	cd MoMM; \
-	rm -r -f ths tptp typ; \
+	fi;
+	cp -a -L all.typ $(BASEDIR)/MOMM;
+	cp -a -L all.tb $(BASEDIR)/MOMM/all.ths.tb;
+	cp -a -L all.cb $(BASEDIR)/MOMM/all.ths.cb;
+	cd $(BASEDIR); 
+	cp -a -L $(MOMM) $(RELCPREM) $(TPTPEXP) $(TPTPVER) $(BASEDIR)/MOMM; 
+	@echo "Compressing ths files"
+	@cd $(BASEDIR)/MOMM; \
+	rm -r -f ths tptp typ;\
 	mkdir  ths tptp typ; \
 	cd ths; \
 	for i in $(addprefix $(DBDIR)/,$(workingths)); do \
-              gzip -c $$i.cb> `basename $$i`.gz ; done; \
-	cd ../tptp; \
+              gzip -c $$i.cb > `basename $$i`.cb.gz ; done; 
+	@echo "Compressing tptp files, will take a while"
+	@cd $(BASEDIR)/MOMM/tptp; \
 	for i in $(addprefix $(DBDIR)/,$(workingtptp)); do \
-              gzip -c $$i.cb> `basename $$i`.gz ; done; \
-	cd ..; \
+              gzip -c $$i.cb > `basename $$i`.cb.gz ; done; 
+	@cd $(BASEDIR)/MOMM; \
 	for i in $(addprefix $(DBDIR)/,$(workingtyp)); do \
-              cp -a -L $$i typ; done; \
+              cp -a -L $$i typ; done; 
 	cd $(BASEDIR); \
-	tar czf MoMM.tar.gz MoMM;
+	tar czf MOMM.tar.gz MOMM;
 	@echo "MoMM distribution created"
 
 %.aa: %.evl $(REPORTER)
