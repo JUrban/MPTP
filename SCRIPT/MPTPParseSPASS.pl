@@ -136,7 +136,7 @@ sub DoOneResult
     $_ = <IN>;
 
     /^Problem:.*\bt(\d+)_(\w+)[.]dfg\s*$/ 
-	or die "Bad problem name: $_";
+	or die "Bad problem name: $.:$_";
 
     ($thnr, $aname) = ($1, $2);
     $pname          = "t".$thnr."_".$aname;
@@ -144,21 +144,21 @@ sub DoOneResult
     $_ = <IN>;
 
     /^\s*SPASS derived\s*(\d+)\s*clauses,\s*backtracked\s*(\d+)\s*clauses\s*and\s*kept\s*(\d+)\s*clauses\.\s*$/
-	or die "Bad problem clauses info: $_";
+	or die "Bad problem clauses info: $.:$_";
     
     ($derived, $backtracked, $kept) = ($1, $2, $3);
 
     $_ = <IN>;
 
     /^\s*SPASS allocated\s*(\d+)\s*KBytes\.\s*$/ 
-	or die "Bad problem memory info: $_";
+	or die "Bad problem memory info: $.:$_";
 
     $memory_allocated = $1;
 
     $_ = <IN>;
 
     /^SPASS spent\s*(\d+):(\d+):(\d+)[.](\d+)\s*on the problem\.\s*$/
-	or die "Bad problem time info: $_";
+	or die "Bad problem time info: $.:$_";
 
     $time = $3+(60*$2)+(3600*$1);
 
@@ -166,35 +166,35 @@ sub DoOneResult
     $_ = <IN>;
 
     /^\s*(\d+):(\d+):(\d+)[.](\d+)\s*for the input\.\s*$/
-	or die "Bad problem input time info: $_";
+	or die "Bad problem input time info: $.:$_";
 
     $input_time = $3+(60*$2)+(3600*$1);
 
     $_ = <IN>;
 
     /^\s*(\d+):(\d+):(\d+)[.](\d+)\s*for the FLOTTER CNF translation\.\s*$/
-	or die "Bad problem flotter time info: $_";
+	or die "Bad problem flotter time info: $.:$_";
 
     $flotter_time = $3+(60*$2)+(3600*$1);
 	
     $_ = <IN>;
 
     /^\s*(\d+):(\d+):(\d+)[.](\d+)\s*for inferences\.\s*$/
-	or die "Bad problem inferences time info: $_";
+	or die "Bad problem inferences time info: $.:$_";
 
     $inferences_time = $3+(60*$2)+(3600*$1);
 
     $_ = <IN>;
 
     /^\s*(\d+):(\d+):(\d+)[.](\d+)\s*for the backtracking\.\s*$/
-	or die "Bad problem backtracking time info: $_";
+	or die "Bad problem backtracking time info: $.:$_";
 
     $backtracking_time = $3+(60*$2)+(3600*$1);
 
     $_ = <IN>;
 
     /^\s*(\d+):(\d+):(\d+)[.](\d+)\s*for the reduction\.\s*$/
-	or die "Bad problem reduction time info: $_";
+	or die "Bad problem reduction time info: $.:$_";
 
     $reduction_time = $3+(60*$2)+(3600*$1);
 
@@ -211,7 +211,7 @@ sub DoOneResult
 	while(($_ = <IN>) && /^\s*$/) {};
 	    
 	/^Here is a proof with depth\s*(\d+),\s*length\s*(\d+)\s*:\s*$/
-	    or die "Bad proof info: $_";
+	    or die "Bad proof info: $.:$_";
 	  
 
 	($proof_depth, $proof_length) = ($1, $2);
@@ -226,7 +226,7 @@ sub DoOneResult
 	print PROOF $linesepar;
 
 	$_= /^Formulae used in the proof\s*:(.*)$/
-	    or die "Bad used formulas info: $_";
+	    or die "Bad used formulas info: $.:$_";
 
 	@used{ split(/ +/, $1) } = ();
 	delete $used{""};
