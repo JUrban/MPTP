@@ -14,6 +14,7 @@ mkproblem.pl -tcard_1 -trolle -ccard_2 t39_absvalue by_25_16_2_absvalue
    --skipbadrefs[=<arg>],   -s[<arg>]
    --allownonex[=<arg>],    -a[<arg>]
    --basedir=<arg>,         -b<arg>
+   --mml_version=<arg>,     -T<arg>
    --memlimit=<arg>,        -M<arg>
    --tharticles=<arg>,      -t<arg>
    --chkarticles=<arg>,     -c<arg>
@@ -39,6 +40,18 @@ Setting to 0 causes error exit on nonexistant articles.
 =item B<<< --basedir=<arg>, -b<arg> >>>
 
 Sets the MPTPDIR to <arg>.
+
+=item B<<< --mml_version=<arg>, -B<T><arg> >>>
+
+Force mkproblem to behave as if working with MML version <arg>.
+This now influences only how the non-database type assertions for
+numerals are created. Generally, this may influence creation
+of any formulas covering various Mizar built-in features in the
+future, as they often change across various MML versions.
+The <arg> is written in the form 3_44_763, and for
+normal usage of the MPTP distribution, the default is OK.
+Use this, if you only want to update the MPTP scripts, without
+updating the databases to newer MML version.
 
 =item B<<< --memlimit=<arg>, -ME<lt>arg> >>>
 
@@ -441,6 +454,7 @@ Getopt::Long::Configure ("bundling","no_ignore_case");
 GetOptions('skipbadrefs|s:i'   => \$SkipBadThRefsProblems,
 	   'allownonex|a:i'    => \$AllowNonExistant,
 	   'basedir|b=s'     => \$MPTPDIR,
+	   'mml_version|T=s' => \$GMML_VERSION,
 	   'memlimit|M=i'    => \$DBMEMLIMIT,
 	   'tharticles|t=s'  => \@tharticles,
 	   'chkarticles|c=s' => \@chkarticles,
