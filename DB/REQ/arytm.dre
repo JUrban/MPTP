@@ -1,0 +1,12 @@
+formula(
+    forall([X],
+      equal(k1_arytm(0,X),X)),
+rq1_arytm).
+formula(
+    forall([X],
+      equal(k2_arytm(0,X),0)),
+rq2_arytm).
+formula(
+    forall([X],
+      equal(k2_arytm(1,X),X)),
+rq3_arytm).

@@ -1,0 +1,85 @@
+Some questions & answers for MPTP v. 0.1.
+-----------------------------------------
+
+Q: How can I help with the project and get some 
+   unimplemented feature into the translation ASAP?
+
+A: Unfortunately, I probably cannot publish the source of 
+   the main translation tool (fo_tool), since it is heavily
+   derived from current Mizar implementation, whose sources
+   are not public. Even if I was allowed to do this, you
+   would need many infrastructure units from the Mizar 
+   sources to compile.
+   The only way how you can get access to the Mizar sources, 
+   is to become a member of the Association of the Mizar 
+   Users (SUM), which is done by having a Mizar article 
+   accepted into MML.
+   I disagree with this policy, but respect it.
+   As for Mizar-independent files, I can set up a public
+   CVS, if anyone is interested in working on them.
+
+Q: Is a Windows version of the system available?
+
+A: No. If anyone is interested, I can compile a Windows 
+   version of the fo_tool. All other scripts are open
+   source, and it is up to you to modify them if you
+   want them on Windows.
+
+Q: I would like to work with other than DFG input format.
+
+A: I plan to include direct TPTP export option into fo_tool,
+   it is almost done, since I needed it for the MoMM project.
+   However my main goal is now rather to optimize for the
+   best prover available (that being SPASS now) as much as
+   possible, than to support various provers. So I may be
+   a bit slow in this.
+   You can use the dfg2tptp tool from SPASS distro, to 
+   get a TPTP representation of a DFG problem, and you
+   can most probably use the TPTP tools to translate to
+   other formats.
+
+Q: OK, I use the dfg2tptp tool, but it seems that the 
+   names of input formulas are lost by the translation.
+
+A: It seems to be a bug in dfg2tptp. I haven't checked
+   the implementation yet, but it is likely to be easily
+   fixable. SPASS is GPL, so there should be no problem
+   in that.
+   
+Q: My prover accepts only CNF tasks, what can I do?
+
+A: Use the FLOTTER tool from the SPASS distro. You can
+   use the dfg2tptp tool after that, to get TPTP format
+   of the CNF translation.
+   I may eventually provide support for direct CNF export,
+   since coherence of the export on the CNF level (e.g.
+   Skolem symbols) might be quite important for domain-
+   based training and optimization of the provers.
+
+Q: OK, I used FLOTTER, but the results of the prover run 
+   on the CNF file seem often to be inferior to the results 
+   of the prover run directly on the DFG input.
+
+A: It seems to me that the order of symbols in the FLOTTER
+   output is changed in comparison with the DFG input.
+   This can probably influence the symbol ordering that 
+   provers generate, since quite often, the input order
+   is used as a last resort to complete the ordering.
+   Again, it is probably not too difficult to fix this in 
+   FLOTTER. I have already reported this problem to Christoph
+   Weidenbach, but got no response yet.
+
+Q: Why does FLOTTER take so much time for the translation?
+   
+A: This can happen when the number of symbols in the input
+   problem is high. SPASS' main datastructure is a list, so
+   e.g. symbol lookup can take quite a lot of time, when there
+   is e.g. 500 symbols.
+   Obviously, this can be fixed by providing SPASS with more
+   indexable datastructures (trees, sorted lists, hashes) in
+   the critical places.
+   Additionally, FLOTTER implements some advanced skolemization
+   options, that can slow down the CNF translation quite a lot.
+   Check the SPASS.1 man page for them.
+
+

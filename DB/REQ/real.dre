@@ -1,0 +1,18 @@
+formula(
+    forall([X],
+      equal(k3_real_1(X,0),X)),
+rq1_real).
+formula(
+    forall([X],
+      equal(k4_real_1(0,X),0)),
+rq2_real).
+formula(
+    forall([X],
+      equal(k4_real_1(X,1),X)),
+rq3_real).
+formula(
+      equal(k1_real_1(0),0),
+rq4_real).
+formula(
+      equal(k2_real_1(1),1),
+rq5_real).

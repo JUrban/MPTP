@@ -1,0 +1,19 @@
+formula(
+    forall([X,Y],
+     implies( r2_hidden(X,Y),
+              m1_subset_1(X,Y))),
+rq1_subset).
+formula(
+    forall([X,Y],
+     equiv( r1_tarski(X,Y), m1_subset_1(X,k1_zfmisc_1(Y)))),
+rq2_subset).
+formula(
+    forall([X,Y,Z],
+     implies( and( r2_hidden(X,Y), m1_subset_1(Y,k1_zfmisc_1(Z))),
+       and( m1_subset_1(X,Z), not( v1_xboole_0(Z))))),
+rq3_subset).
+formula(
+    forall([X,Y],
+     implies( and( m1_subset_1(X,Y), not( v1_xboole_0(Y))),
+	r2_hidden(X,Y))),
+rq4_subset).

@@ -1,0 +1,25 @@
+If you downloaded the complete system, you just need to 
+set the shell variable MPTPDIR to the base MPTP directory -
+e.g. "export MPTPDIR=/home/urban/MPTP".
+
+After that you can try the mkproblem.pl script in
+MPTPDIR/SCRIPTS, e.g. "./mkproblem.pl -tcard_1 -trolle -crolle".
+If it does not work, you probably need to install the 
+DB_File perl module. In most distributions it is either 
+part of the perl rpm, or (e.g. in redhat8.0) something 
+like "perl-DB_File". Last resort is to get it from CPAN.
+
+For reproving, you need the SPASS prover 
+(http://spass.mpi-sb.mpg.de). Look at the FAQ here for 
+more info.
+
+
+If you want to generate the DB from your Mizar distro,
+you additionally need:
+- Mizar version 6.3 (tested with 6.3.02)
+- to set the top variables in Makefile.vars
+- about 600M additional space for tmp Mizar files
+- about 1 hour on P4 to generate the DB
+
+The installation is done by running "make cleaninstall"
+in MPTPDIR.
