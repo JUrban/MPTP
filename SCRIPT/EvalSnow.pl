@@ -2,7 +2,24 @@
 
 =head1 NAME
 
-EvalSnow.pl ( Print the statitics abot Snow predictions )
+EvalSnow.pl [scalelimit] ( Print the statitics abot Snow predictions)
+
+=head1 SYNOPSIS
+
+  # Train snow with Naive Bayes targets 0-41079 on $NAME.train,
+  # test then on $NAME.test, limiting prediction output to 100 best hits,
+  # print the statistics about results into $NAME.eval,
+  # and plot it with gnuplot.
+
+ snow -train -I $NAME.train -F $NAME.net -B :0-41079
+ snow -test -o allboth -I $NAME.test -F $NAME.net -B :0-41079 | LimitSnow.pl 100 > $NAME.res
+ EvalSnow.pl 100  < $NAME.res > $NAME.eval
+ gnuplot
+ gnuplot> plot "$NAME.eval"
+
+=head1 APPENDIX
+
+Description of functions defined here.
 
 =cut
 
@@ -14,6 +31,20 @@ my ($gstat,$gscale)     ;
 
 $glimit = 100 unless(defined($glimit));
 
+
+=head2   ParseStats()
+
+  Title        : ParseStats()
+  Usage        : $gstat = ParseStats();
+  Function     : Parse the Snow result predictions into a statistics table.
+                 Each record in the table is a list 
+                 ( number_of_wanted_targets, (positions_of_wanted_targets) )
+  Returns      : pointer to the table
+  Global Vars  : STDIN
+  Args         : -
+
+=cut
+
 sub ParseStats
 {
     my $predpos;
@@ -21,7 +52,7 @@ sub ParseStats
 
     while ($_=<>) 
     {
-	if (/Example/)
+	if (/Example/)        # Start entry for a new example
 	{
 	    my $rec  = [];
 	    $predpos = 0;
@@ -31,7 +62,7 @@ sub ParseStats
 	    push @$rec, (1+$#wanted, []);
 	    push @stat, $rec;
 	}
-	else
+	else                  # Push positions of wanted targets - they are marked with * in $NAME.res
 	{
 	    $predpos++;
 	    push(@{ $stat[$#stat]->[1]}, $predpos) if(/.*[*].*/);
@@ -54,19 +85,22 @@ sub PrintStats
 sub min { my ($x,$y) = @_; ($x <= $y)? $x : $y }
 
 =head2 CreateScale()
+
   Title        : CreateScale()
-  Usage        : CreateScale($limit,$stat)
-  Function     : For each scale step, calculate for each example the 
+  Usage        : $gscale = CreateScale($glimit, $gstat);
+  Function     : Calculate average snow hitrate for each value below a limit.
+                 This means: For each scale step, calculate for each example the
                  number of correctly
                  predicted references below the step, and divide by
                  min(total number of needed refs, step value) - 
                  which tells how much are we successful at this point.
-                 Do average acroos all examples.
+                 Do average across all examples.
   Returns      : -
   Global Vars  : -
-  Args         : $stat
+  Args         : $limit: scale upper limit, $stat: parsed statistics table
 
 =cut
+
 sub CreateScale
 {
     my ($limit,$stat) = @_;
@@ -90,6 +124,17 @@ sub CreateScale
     }
     return \@scale;
 }
+
+=head2  PrintScale()
+
+  Title        : PrintScale()
+  Usage        : PrintScale($gscale);
+  Function     : Print the scale for gnuplot
+  Returns      : -
+  Global Vars  : -
+  Args         : $scale: scale in output format of CreateScale()
+
+=cut
 
 sub PrintScale
 {
