@@ -1,7 +1,92 @@
 #!/usr/bin/perl -w
+
+=head1 NAME
+
+mkproblem.pl ( Problem generating script for MPTP)
+
+=head1 SYNOPSIS
+
+mkproblem.pl [options] problemnames
+
+mkproblem.pl -tcard_1 -trolle -ccard_2 t39_absvalue by_25_16_2_absvalue
+
+ Options:
+   --skipbadrefs[=<arg>],   -s[<arg>]
+   --allownonex[=<arg>],    -a[<arg>]
+   --basedir=<arg>,         -b<arg>
+   --memlimit=<arg>,        -M<arg>
+   --tharticles=<arg>,      -t<arg>
+   --chkarticles=<arg>,     -c<arg>
+   --filter=<arg>,          -f<arg>
+   --help,                  -h
+   --man
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<<< --skipbadrefs[=<arg>], -s[<arg>] >>>
+
+Skip problems with bad references.
+
+=item B<<< --allownonex[=<arg>], -a[<arg>] >>>
+
+Setting to 0 causes error exit on nonexistant articles.
+
+=item B<<< --basedir=<arg>, -b<arg> >>>
+
+Sets the MPTPDIR to <arg>.
+
+=item B<<< --memlimit=<arg>, -ME<lt>arg> >>>
+
+Sets memory limit for database caches, not implemented yet.
+
+=item B<<< --tharticles=<arg>, -t<arg> >>>
+
+Do all theorem problems from the article <arg>, this option can be 
+repeated to specify multiple articles.
+
+=item B<<< --chkarticles=<arg>, -c<arg> >>>
+
+Do all checker problems from the article <arg>, this option can be 
+repeated to specify multiple articles.
+
+=item B<<< --filter=<arg>, -f<arg> >>>
+
+Specify the filtering of the background formulas. 
+Default is now 1 - the checker-based signature filtering. 
+Setting to 0 does no filtering at all.
+
+=item B<<< --help, -h >>>
+
+Print a brief help message and exit.
+
+=item B<<< --man >>>
+
+Print the manual page and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+B<mkproblem.pl> gets a list of options and a list of theorem names or
+checker problem names (in our format, e.g. t39_absvalue or
+by_25_16_2_absvalue), and produces a complete dfg file 
+for each of them. This file contains full informations 
+necessary for reproval, i.e. the references and all of the background
+info (constructor types, requirements, etc.).
+Problem files are stored under their articles directories,
+in the PROBLEMS directory.
+
+=head1 CONTACT
+
+Josef Urban urban@kti.ms.mff.cuni.cz
+
+=cut
+
 #------------------------------------------------------------------------
 #
-# File  : mkproblem.pl ( Problem generating script for MPTP)
+# File  : mkproblem.pl 
 #
 # Author: Josef Urban
 #
@@ -22,6 +107,7 @@
 #------------------------------------------------------------------------
 use strict;
 use Getopt::Long;
+use Pod::Usage;
 use MPTPDebug;
 use MPTPUtils;
 use MPTPSgnFilter;
@@ -29,15 +115,16 @@ use MPTPSgnFilter;
 
 our (
      %gproblems
-#     %th_problems, 
-#     %chk_problems
+     #     %th_problems, 
+     #     %chk_problems
     );
 
 undef %gproblems;
-my (@tharticles, @chkarticles); # do all problems for these
+my ($help, $man, @tharticles, @chkarticles); # do all problems for these
 
 
-my $gaddme = 1;  # Tells to add article to its env. directives
+my $gaddme = 1;			# Tells to add article to its env. directives
+my $FILTER = 1;
 
 sub Usage 
 {
@@ -74,7 +161,6 @@ sub  ProcessArgs
 		die "$thnr is greater than the max. theorem number for $an";
 
 	    $gproblems{$an}{'THE'}{$thnr} = ();
-#	    push @{ $gproblems{$an}{'THE'}}, $thnr;
 	}
 
 	elsif ($arg =~ /by_(\d+)_(\d+)_(\d+)_(\w+)/)
@@ -84,7 +170,6 @@ sub  ProcessArgs
 	    $3 <= $gcnt{$4}->{'CHK'} or 
 		die "$3 is greater than the max. checker problem number for $an";
 	    $gproblems{$4}{'CHK'}{$3} = $arg;
-#	    push @{ $gproblems{$4}{'CHK'}}, $arg;
 	}
 
 	else
@@ -104,10 +189,10 @@ sub AddWholeArticles
 	exists $gcnt{$an} or 
 	    die "Article $an unknown, add it into db!";
 
-	for($i = 1; $i <= $gcnt{$an}->{'CHK'}; $i++)
+	for ($i = 1; $i <= $gcnt{$an}->{'CHK'}; $i++)
 	{
 	    $gproblems{$an}{'CHK'}{$i} = ()
-		unless(exists $gproblems{$an}{'CHK'}{$i});
+		unless (exists $gproblems{$an}{'CHK'}{$i});
 	}
     }
 
@@ -117,10 +202,10 @@ sub AddWholeArticles
 	exists $gcnt{$an} or 
 	    die "Article $an unknown, add it into db!";
 
-	for($i = 1; $i <= $gcnt{$an}->{'THE'}; $i++)
+	for ($i = 1; $i <= $gcnt{$an}->{'THE'}; $i++)
 	{
 	    $gproblems{$an}{'THE'}{$i} = ()
-		unless(ThCanceled($i + $grcn{$an}->{'THE'} - 1));
+		unless (ThCanceled($i + $grcn{$an}->{'THE'} - 1));
 	}
     }
 
@@ -149,7 +234,7 @@ sub CreateDirs
     }
 }
 
-    
+
 sub PrepareBgs
 {
     my $key;
@@ -175,59 +260,83 @@ sub PrepareBgs
 sub DoProblems
 {
     my ($an,$nr,$prb,%refnbrs,$ref,$myfname,$chkrefs,
-	$mybg,$mysymbols,$dirkind,$j,%bgcache,$pname);
+	$mybg,$mysymbols,$dirkind,$j,%bgcache,%bgsyms,$pname);
 
     foreach $an (keys %gproblems)
     {
 	undef %bgcache;
+	undef %bgsyms;
 
-      TH: foreach $nr ( sort {$a <=> $b} (keys %{$gproblems{$an}{'THE'}}) )
-      {
-	  %refnbrs = GetThRefs($an, $nr);
-	  
-	  if(! (exists $refnbrs{'THE'}))
-	  {
-	      print "Problem t$nr\_$an ignored, unexported references\n"
-		  if(GWATCHED & WATCH_BADREFS);
+	if ($FILTER == 0)
+	{
+	    $mybg      = $gproblems{$an}{'BG'};
+	    GetAllBgSyms($mybg, \%bgsyms);
+	}
 
-	      next TH;
-	  }
+    TH: foreach $nr ( sort {$a <=> $b} (keys %{$gproblems{$an}{'THE'}}) )
+	{
+	    %refnbrs = GetThRefs($an, $nr);
 
-	  ($mybg, $mysymbols) = 
-	      FilterBg('THE', \%refnbrs, $gproblems{$an}{'BG'}, \%bgcache);
+	    if (! (exists $refnbrs{'THE'}))
+	    {
+		print "Problem t$nr\_$an ignored, unexported references\n"
+		    if (GWATCHED & WATCH_BADREFS);
 
-	  $mysymbols = GroupDfgSymbols($mysymbols);
-#	  $mybg = $gproblems{$an}{'BG'};
-#	  $mysymbols = GetSymbols( $mybg, \%refnbrs);
-	  $myfname = $MPTPPROBLEMS.$an."/t".$nr."_".$an.".dfg";
+		next TH;
+	    }
 
-	  PrintDfgProblem('THE', $myfname, "t".$nr."_".$an, 
-			  $mysymbols, $mybg, \%refnbrs);
-      }
+	    if ($FILTER == 0)
+	    {
+		$mysymbols = AddSymsAndSpecials('THE', \%refnbrs,
+						$mybg, \%bgsyms);
+	    }
+	    else
+	    {
+		($mybg, $mysymbols) = FilterBg('THE', \%refnbrs,
+					       $gproblems{$an}{'BG'}, \%bgcache);
+		$mysymbols = GroupDfgSymbols($mysymbols);
+	    }
 
-	if( exists $gproblems{$an}{'CHK'} )  
+	    $myfname = $MPTPPROBLEMS.$an."/t".$nr."_".$an.".dfg";
+
+	    PrintDfgProblem('THE', $myfname, "t".$nr."_".$an, 
+			    $mysymbols, $mybg, \%refnbrs);
+
+	    undef $mybg->{'NDB'} if ($FILTER == 0);
+	}
+
+	if ( exists $gproblems{$an}{'CHK'} )
 	{
 	    OpenChkDb($an);
-	
-	  CHK: foreach $prb (sort {$a<=>$b} keys %{$gproblems{$an}{'CHK'}})
-	  {
-#	      $prb =~ /by_(\d+)_(\d+)_(\d+)_(\w+)/;
-	      ($pname, $chkrefs)  = GetChkRefs($an, $prb);
 
-# assert($prb eq $pname);
+	CHK: foreach $prb (sort {$a<=>$b} keys %{$gproblems{$an}{'CHK'}})
+	    {
+		#	      $prb =~ /by_(\d+)_(\d+)_(\d+)_(\w+)/;
+		($pname, $chkrefs)  = GetChkRefs($an, $prb);
 
-	      ($mybg, $mysymbols) = 
-		  FilterBg('CHK', $chkrefs, 
-			   $gproblems{$an}{'BG'}, \%bgcache);
+		# assert($prb eq $pname);
 
-	      $mysymbols = GroupDfgSymbols($mysymbols);
-#	  $mybg = $gproblems{$an}{'BG'};
-#	  $mysymbols = GetSymbols( $mybg, \%refnbrs);
-	      $myfname = $MPTPPROBLEMS.$an."/".$pname.".dfg";
+		if ($FILTER == 0)
+		{
+		    $mysymbols = AddSymsAndSpecials('CHK', $chkrefs,
+						    $mybg, \%bgsyms);
+		}
+		else
+		{
 
-	      PrintDfgProblem('CHK', $myfname, $pname, 
-			      $mysymbols, $mybg, $chkrefs);
-	  }
+		    ($mybg, $mysymbols)	 =
+			FilterBg('CHK', $chkrefs,
+				 $gproblems{$an}{'BG'}, \%bgcache);
+		    $mysymbols		 = GroupDfgSymbols($mysymbols);
+		}
+
+		$myfname = $MPTPPROBLEMS.$an."/".$pname.".dfg";
+
+		PrintDfgProblem('CHK', $myfname, $pname, 
+				$mysymbols, $mybg, $chkrefs);
+
+		undef $mybg->{'NDB'} if ($FILTER == 0);
+	    }
 
 	    CloseChkDb($an);
 	}
@@ -244,19 +353,21 @@ Getopt::Long::Configure ("bundling");
 GetOptions('skipbadrefs|s:i'   => \$SkipBadThRefsProblems,
 	   'allownonex|a:i'    => \$AllowNonExistant,
 	   'basedir|b=s'     => \$MPTPDIR,
-	   'memlimit|m=i'    => \$DBMEMLIMIT,
+	   'memlimit|M=i'    => \$DBMEMLIMIT,
 	   'tharticles|t=s'  => \@tharticles,
-	   'chkarticles|c=s' => \@chkarticles)
-    or Usage();
+	   'chkarticles|c=s' => \@chkarticles,
+	   'filter|f=i'      => \$FILTER,
+	   'help|h'          => \$help,
+	   'man'             => \$man)
+    or pod2usage(2);
 
-
-if (($#ARGV < 0) && ($#tharticles < 0) && ($#chkarticles < 0)) 
-{
-    Usage();
-}
+pod2usage(1) if($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if($man);
+pod2usage(2) 
+    if (($#ARGV < 0) && ($#tharticles < 0) && ($#chkarticles < 0)); 
 
 die "Set the MPTPDIR shell variable, or run with the -b option"
-    if("/" eq $MPTPDIR);
+    if ("/" eq $MPTPDIR);
 
 
 LoadCounts();
@@ -274,3 +385,5 @@ CreateDirs();
 PrepareBgs();
 
 DoProblems();
+
+__END__

@@ -46,7 +46,12 @@ BEGIN {
     use Exporter   ();
 
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(&FilterBg);
+    @EXPORT      = qw(&CollectSymbols
+		      &GetDirectSyms
+		      &GetAllBgSyms
+		      &FilterBgWithSyms
+		      &AddSymsAndSpecials
+		      &FilterBg);
     @EXPORT_OK   = qw();
     %EXPORT_TAGS = ( FIELDS => [ @EXPORT_OK, @EXPORT ] );
 }
@@ -518,6 +523,9 @@ sub AddRequirements
 #  Add the 'NDB' flas for delta symbols according 
 #  to the 'SPC' slot of the cache to $addedbg, add 
 #  symbols of that flas to $newsyms.
+#  Anything having the 'SPC' slot can be used,
+#  so we use it for completing bg when no filtering is
+#  used too.
 #  This can be used for all kinds of extraordinary hacks,
 #  now just for adding number types according to requirements.
 #  Very hardcoded, fix here if requirements change.
@@ -670,6 +678,173 @@ sub FixPoint
     return \%addedbg;
 }
 
+#------------------------------------------------------------------------
+#  Function    : GetDirectSyms()
+#
+#  Get the symbols from the direct references.
+#  Pass them back in $refsyms.
+#
+#  Input       : refs kind (THE or CHK), refs, pointer to symbols hash
+#  Side Effects: $refsyms changed
+#  Global Vars : -
+#  Output      : -
+#------------------------------------------------------------------------
+
+sub GetDirectSyms
+{
+    my ($kind, $refs, $refsyms) = @_;
+    my ($refkind, $j, $ref, $onesyms);
+
+    if($kind eq 'THE')
+    {
+	foreach $refkind (keys %$refs)   # now 'THE' and 'DEF'
+	{
+	    foreach $j (@{ $refs->{$refkind}})
+	    {
+		$D{$refkind}[$j]   =~ m/^\s*formula\((.*)\n\w+\)$/s
+		    or die "Bad $refkind fla at $j\n";
+		
+		$onesyms           =  CollectSymbols($1);
+		@$refsyms{ (keys %$onesyms) } = ();
+	    }
+	}
+    }
+    else
+    {
+	($kind eq 'CHK') or die "Bad problem kind: $kind";
+
+	foreach $ref (@$refs)
+	{
+	    $ref     =~ m/^\s*formula\((.*)\n\w+\)$/s
+		or die "Bad checker fla: $ref\n";
+
+	    $onesyms =  CollectSymbols($1);
+	    @$refsyms{ (keys %$onesyms) } = ();
+	}	
+    }
+}
+
+
+#------------------------------------------------------------------------
+#  Function    : GetAllBgSyms()
+#
+#  Get the symbols from the background.
+#  Pass them back in $refsyms.
+#
+#  Input       : background, pointer to symbols hash
+#  Side Effects: $refsyms changed
+#  Global Vars : -
+#  Output      : -
+#------------------------------------------------------------------------
+
+sub GetAllBgSyms
+{
+    my ($bg, $refsyms) = @_;
+    my ($dirkind, $j, $ref, $onesyms);
+
+    foreach $dirkind ( @GBGTOKENS )  # omitting 'NDB' and 'SPC'
+    {
+	foreach $j (@{ $bg->{$dirkind}})
+	{
+	    $D{$dirkind}[$j]   =~ m/^\s*formula\((.*)\n\w+\)$/s
+		or die "Bad $dirkind fla at $j\n";
+	    
+	    $onesyms           =  CollectSymbols($1);
+	    @$refsyms{ (keys %$onesyms) } = ();
+	}
+    }
+}
+
+
+#------------------------------------------------------------------------
+#  Function    : FilterBgWithSyms()
+#
+#  Does the fixpoint work with initial symbols already
+#  given in the hash pointer $refsyms.
+#  See the doc for FilterBg.
+#
+#  Input       : article background theory, cache from previous 
+#                filtering, symbols in the initial references
+#  Side Effects: $refsyms changed, $bgcache changed
+#  Global Vars : -
+#  Output      : $result, $refsyms
+#------------------------------------------------------------------------
+
+sub FilterBgWithSyms
+{    
+    my ($oldbg, $bgcache, $refsyms) = @_;
+    my (%newsyms, $onesyms, $result);
+
+    if(! exists $bgcache->{'DCO'})
+    {
+	InitCache($bgcache, $oldbg);
+    }
+    else
+    {
+	InitCacheGraphs($bgcache);
+	$bgcache->{'NDB'} = ();      
+    }
+
+    @newsyms{ (keys %$refsyms) } = ();  # need a copy
+
+    if( GWATCHED & WATCH_FILTER_BGCACHE ) { PrintCache($bgcache) };
+
+    print "PROBLEM SYMBOLS:start: ", join(",",(keys %$refsyms)), "\n"
+	if( GWATCHED & WATCH_FILTER_SYMBOLS );
+
+    $result = FixPoint($refsyms, \%newsyms, $oldbg, $bgcache);
+
+
+    print "PROBLEM SYMBOLS:end: ", join(",",(keys %$refsyms)), "\n"
+	if( GWATCHED & WATCH_FILTER_SYMBOLS );
+    
+
+    return ($result, $refsyms);
+}
+
+#------------------------------------------------------------------------
+#  Function    : AddSymsAndSpecials()
+#
+#  Top-level function when filtering is not used.
+#  Add the symbols from direct refs to bg symbols, 
+#  fetch the special flas for them. This theoretically means
+#  we should do fixpoint computation, but specials add no new
+#  numbers now, and other symbols should be already in the bg.
+#  Pass them back in $refsyms.
+#
+#  Input       : kind, refs, background, pointer to bg symbols hash
+#  Side Effects: $bg->{'NDB'} changed
+#  Global Vars : -
+#  Output      : grouped symbols
+#------------------------------------------------------------------------
+
+
+sub AddSymsAndSpecials
+{    
+    my ($kind, $refs, $bg, $bgsyms) = @_;
+    my (%refsyms,$groupedsyms,$numsyms,$spcsyms);
+
+    print "PROBLEM SYMBOLS:bg: ", join(",",(keys %$bgsyms)), "\n"
+	if( GWATCHED & WATCH_FILTER_SYMBOLS );
+
+    GetDirectSyms($kind, $refs, \%refsyms);
+
+    print "PROBLEM SYMBOLS:direct: ", join(",",(keys %refsyms)), "\n"
+	if( GWATCHED & WATCH_FILTER_SYMBOLS );
+
+    @refsyms{ (keys %$bgsyms) } = ();  
+    $groupedsyms = GroupDfgSymbols(\%refsyms);
+    if (defined $groupedsyms->{'NUM'})
+    {
+	@$numsyms{ @{$groupedsyms->{'NUM'}} } = ();	
+	AddSpecial($bg, $spcsyms, $numsyms, $bg);
+    }
+
+    return $groupedsyms;
+}
+
+
+
 
 #------------------------------------------------------------------------
 #  Function    : FilterBg()
@@ -716,62 +891,10 @@ sub FixPoint
 sub FilterBg
 {    
     my ($kind, $refs, $oldbg, $bgcache) = @_;
-    my (%refsyms, %newsyms, $refkind, $j, $ref, $onesyms, $result);
+    my (%refsyms);
 
-    if(! exists $bgcache->{'DCO'})
-    {
-	InitCache($bgcache, $oldbg);
-    }
-    else
-    {
-	InitCacheGraphs($bgcache);
-	$bgcache->{'NDB'} = ();      
-    }
-
-    if($kind eq 'THE')
-    {
-	foreach $refkind (keys %$refs)   # now 'THE' and 'DEF'
-	{
-	    foreach $j (@{ $refs->{$refkind}})
-	    {
-		$D{$refkind}[$j]   =~ m/^\s*formula\((.*)\n\w+\)$/s
-		    or die "Bad $refkind fla at $j\n";
-		
-		$onesyms           =  CollectSymbols($1);
-		@refsyms{ (keys %$onesyms) } = ();
-	    }
-	}
-    }
-    else
-    {
-	($kind eq 'CHK') or die "Bad problem kind: $kind";
-
-	foreach $ref (@$refs)
-	{
-	    $ref     =~ m/^\s*formula\((.*)\n\w+\)$/s
-		or die "Bad checker fla: $ref\n";
-
-	    $onesyms =  CollectSymbols($1);
-	    @refsyms{ (keys %$onesyms) } = ();
-	}
-	
-    }
-
-    @newsyms{ (keys %refsyms) } = ();  # need a copy
-
-    if( GWATCHED & WATCH_FILTER_BGCACHE ) { PrintCache($bgcache) };
-
-    print "PROBLEM SYMBOLS:start: ", join(",",(keys %refsyms)), "\n"
-	if( GWATCHED & WATCH_FILTER_SYMBOLS );
-
-    $result = FixPoint(\%refsyms, \%newsyms, $oldbg, $bgcache);
-
-
-    print "PROBLEM SYMBOLS:end: ", join(",",(keys %refsyms)), "\n"
-	if( GWATCHED & WATCH_FILTER_SYMBOLS );
-    
-
-    return ($result, \%refsyms);
+    GetDirectSyms($kind, $refs, \%refsyms);
+    return FilterBgWithSyms($oldbg, $bgcache, \%refsyms);
 }
 
 1;

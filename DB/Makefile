@@ -79,15 +79,137 @@ stdverify	=  $(addsuffix .vrf,$(STDMIZPREF))
 verify:  links $(stdverify)
 	@echo "All verified"
 
-# Relcprem
+# Relcprem - we have to ignore errors now, should be fixed in
+# relcprem
 
 %.rlc: %.evl
-	$(RELCPREM) $* >> $(RLCLOG)	
+	-$(RELCPREM) -q $* >> $(RLCLOG)	
 
 stdrlc	=  $(addsuffix .rlc,$(STDMIZPREF))
 
-rlcfiles: links $(stdrlc)
+rlcfiles: links $(RELCPREM) $(stdrlc)
 	@echo "All rlc done"
+
+%.tptp: %.rlc
+	$(TPTPEXP) -q $* >> $(TPTPLOG)
+
+
+# These cause errors to $(FO_TOOL) now in the DNF module
+# (too many clause from one formula)
+
+badtptp = g/gate_1 g/gate_2 g/gate_3 g/gate_4 g/gate_5 p/polynom1
+
+mommworking = $(filter-out $(badtptp),$(STDMIZPREF))
+workingtptp = $(addsuffix .tptp,$(mommworking))
+workingths  = $(addsuffix .ths,$(mommworking))
+workingtyp  = $(addsuffix .typ,$(mommworking))
+
+MOMMTYPES   = $(DBDIR)/all.typ
+
+# MEMLIMIT for reduce.pl
+REDMEMLIMIT = 300000000
+
+MOMM	= $(ADDBIN)/MoMM
+REDLOG	= /dev/null
+
+
+REDTMPDIR   = $(DBDIR)/REDTMP
+REDPLANNER  = $(ADDSCRIPT)/reduce.pl
+REDSCRIPT = $(DBDIR)/doreduction.sh
+
+tptp_export: $(TPTPEXP) rlcfiles $(workingtptp)
+	@echo "TPTP export done"
+
+$(MOMMTYPES): $(workingtptp)
+	rm -r -f $(MOMMTYPES)
+#	@if test ! -d $(REDTMPDIR); then mkdir $(REDTMPDIR); fi; 
+	@for i in $(workingtyp); do cat $$i >> $(MOMMTYPES); done
+	@echo "$(MOMMTYPES) created"
+
+# NOT needed for simple interreduction
+
+$(REDSCRIPT): $(workingtptp) $(MOMMTYPES)
+	rm -r -f $(REDSCRIPT)
+	@echo "Creating $(REDSCRIPT), this will take some time"
+	$(REDPLANNER) -s0 -p1 -b$(REDTMPDIR) -m$(REDMEMLIMIT) -t$(MOMMTYPES)  $(notdir $(mommworking)) > $(REDSCRIPT)
+	@echo "$(REDSCRIPT) created"
+
+# The simple interreduction
+
+%.ths.cb: %.tptp
+	$(MOMM) -s -f -t nsaccept -w $*.ths $*.ths >> $(REDLOG)
+
+%.tptp.cb: %.tptp %.ths.cb
+	$(MOMM) -s -f -t nbsaccept -w $*.tptp $*.tptp >> $(REDLOG)
+	$(MOMM) -s -f -t nbsaccept -w $*.tptp -T $*.ths1 $*.ths.cb $*.tptp.cb >> $(REDLOG)
+
+
+red_simple: $(workingtptp) $(addsuffix .cb,$(workingtptp)) \
+            $(addsuffix .ths.cb,$(mommworking))
+	@echo "Simple iterreduction finished"
+
+# this is hack to allow usqge of $(REDSCRIPT)
+backup_tptp: $(workingtptp)
+	@for i in $(workingtptp); do mv -f $$i $$i.backup; done
+	@for i in $(workingths); do mv -f $$i $$i.backup; done	
+	@echo "tptp and ths files backud up"
+
+fake_tptp:
+	@for i in $(mommworking);do \
+	  sed -e 's/nbsaccept:/accept:/' $$i.tptp.cb > $$i.tptp; \
+	  sed -e 's/nsaccept:/accept:/' $$i.ths.cb > $$i.ths; \
+	done
+
+restore_tptp: 
+	@for i in $(workingtptp); do mv -f $$i.backup $$i; done
+	@for i in $(workingths); do mv -f $$i.backup $$i; done	
+	@echo "tptp and ths files restored up"
+
+%.aa: %.evl $(REPORTER)
+	$(REPORTER) -q $* >> $(AA_LOG)
+
+stdaa	=  $(addsuffix .aa,$(STDMIZPREF))
+
+$(addsuffix .aa,$(NONSTDMIZPREF)): %.aa: %.evl $(REPORTER)
+	-$(REPORTER) -q $* >> $(AA_LOG)
+
+nonstdaa	= $(addsuffix .aa,$(NONSTDMIZPREF))
+
+allaa	= $(stdaa) $(nonstdaa)
+
+cleanaa: 
+	rm -r -f [a-z]/*.aa
+
+aa_report: links $(allaa)
+	@echo "All reported"
+
+
+%.pl: %.aa $(ABS2PROL)
+	$(ABS2PROL)  $* >> $(PL_LOG)
+
+stdpl	=  $(addsuffix .pl,$(STDMIZPREF))
+
+$(addsuffix .pl,$(NONSTDMIZPREF)): %.pl: %.aa $(ABS2PROL)
+	-$(ABS2PROL)  $* >> $(PL_LOG)
+
+nonstdpl	= $(addsuffix .pl,$(NONSTDMIZPREF))
+
+allpl	= $(stdpl) $(nonstdpl)
+
+cleanpl: 
+	rm -r -f [a-z]/*.pl
+
+pl_report: links $(allpl)
+	@echo "All prolog reports done"
+
+# this SWI command does not set exit status if error!
+PLTEST 	= 	pl -g halt -f
+
+pl_check:  # $(allpl)
+	@for f in $(allpl);do $(PLTEST) $$f; done;
+	@echo "All .pl files checked ok"
+
+
 
 # Some .dsf have size zero, so on not so old reiserfs, they will
 # be rebuilt :-(. Fixing this by touching them now.
@@ -228,6 +350,8 @@ runningcounts.db: counts.db
 	@echo "Created runningounts.db from counts.db"
 
 
+
+
 # To have environments.db corresponding to counts.db
 
 ADDEDREQENVFIX	= "env([],[],[],[],[],[],[],[],[])."
@@ -243,6 +367,12 @@ environments.db: $(alldsf)
 	done; 
 	@echo "Created environments.db"
 
+MKTHPINFO	= $(ADDSCRIPT)/MPTPThProblemInfo.pl
+ALLMIZREQ	= $(ADDEDREQFILES) $(ALLMIZ) 
+thprobleminfo.db: counts.db runningcounts.db environments.db
+	@echo "Creating thprobleminfo.db, this will take some time"
+	@ cd $(ADDSCRIPT); $(MKTHPINFO) $(ALLMIZREQ); cd ..
+	@echo "thprobleminfo.db created"
 
 
 reinstall: cleandirs cleanlogs dfg_export counts.db runningcounts.db environments.db

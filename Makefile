@@ -39,7 +39,7 @@ cleandist:
 	rm -r -f MPTP.tar.gz
 
 
-basefiles = Makefile.vars Makefile MPTPFAQ.txt MPTPInstall.txt README_MPTP.txt
+basefiles = Makefile.vars Makefile MPTPFAQ.txt MPTPInstall.txt README_MPTP.txt MPTPIdeas.txt MPTPResults.sql
 
 basicdist: cleandist
 	@mkdir MPTP; cd MPTP; \
