@@ -40,8 +40,10 @@ Print the manual page and exit.
 B<MPTPMakeSnowDB.pl> creates the training (filename.train) and 
 architecture (filename.arch) files  for the Snow learning system.
 The feature numbering is derived from numbering of theroems and
-definitions - symbol numbering atrts at offset 100000.
+definitions - symbol numbering starts at offset 100000.
 The output is: conjecture_symbols,direct_refernces:
+Now also prints the symbol2number (.symnr) and ref2number (.refnr)
+files - the numbering there is implicit.
 
 =head1 CONTACT
 
@@ -92,6 +94,7 @@ sub AddNumbers
 	    {
 		push(@gnrref, "t$i"."_$an");
 		$grefnr{"t$i"."_$an"} = $#gnrref;
+		print REFNR "t$i"."_$an\n";
 	    }
 	}
 
@@ -99,6 +102,7 @@ sub AddNumbers
 	{
 	    push(@gnrref, "d$i"."_$an");
 	    $grefnr{"d$i"."_$an"} = $#gnrref;
+	    print REFNR "d$i"."_$an\n";
 	}
 
 	foreach $kind ('DSF', 'DSP')
@@ -111,6 +115,7 @@ sub AddNumbers
 		$D{$kind}[$j]  =~ m/^\W+arity\((\w+),(\d+)\)$/s;
 		push(@gnrsym, $1);
 		$gsymnr{$1}    = $gsymoffset + $#gnrsym;
+		print SYMNR "$1\n";
 	    }
 	}
     }
@@ -204,6 +209,11 @@ PrintCnts() if(GWATCHED & WATCH_COUNTS);
 PrintRcns() if(GWATCHED & WATCH_COUNTS);
 
 OpenDbs();
+
+
+open(SYMNR, ">$fname.symnr") or die "$fname.symnr not writable!";
+open(REFNR, ">$fname.refnr") or die "$fname.refnr not writable!";
+
 AddNumbers();
 
 open(REFS, $refs)     or die "$refs not readable!";
