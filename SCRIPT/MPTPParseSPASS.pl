@@ -15,6 +15,10 @@
 # To have the tables consistent, starting value of id for
 # the 'proved' and 'unproved' table may be passed as a parameter.
 #
+# If the -S option is used, symbols from formulas are additionally
+# extracted and put in the end - this makes it incompatible with the 
+# curent MPTPResults.sql.
+#
 # Changes
 #
 # <1> Tue Mar 18 20:37:55 2003
@@ -38,11 +42,17 @@ my $machine_cpu	       = "P4";
 my $machine_memory     = 512232;		# In kb 
 my $machine_os	       = "Linux";
 
+my $do_symbols  = 0;        # Print symbol information - now incompatible with MPTPResults.sql
 my $escapechar  = '\\';
 my $fieldsepar  = "\t";     # MySQL field separator
 my $linesepar   = "\n";     # MySQL line separator
 
-
+my $gproved;                # count for proved
+my $gunproved;              # count for unproved
+my $gresfname;              # result file name
+my $provedfname;            # proved file name
+my $unprovedfname;          # unproved file name
+my $prooffname;             # proof file name
 
 sub Usage 
 {
@@ -60,42 +70,6 @@ sub Usage
  as YYYY/MM/DD (2003/03/15).";
     exit;
 }
-
-Getopt::Long::Configure ("bundling");
-
-GetOptions('provedstart|p:i'         => \$ProvedStart,
-	   'unprovedstart|u:i'       => \$UnprovedStart,
-	   'Format|F:s'              => \$Format,
-	   'Prover|P:s'              => \$Prover,
-	   'time_limit|t:i'          => \$time_limit,	    
-	   'memory_limit|m:i'        => \$memory_limit,
-	   'prover_parameters|r:s'   => \$prover_parameters,
-	   'start_date|d=s'          => \$start_date,
-	   'hostname|h:s'            => \$hostname,
-	   'machine_cpu|c:s'         => \$machine_cpu,
-	   'machine_memory|M:i'      => \$machine_memory,
-	   'machine_os|o:s'          => \$machine_os)
-
-    or Usage();
-
-
-if ($#ARGV != 0)
-{
-    Usage();
-}
-
-
-my $gproved       = $ProvedStart;
-my $gunproved     = $UnprovedStart;
-my $gresfname     = $ARGV[0];
-my $provedfname   = $gresfname.".proved";
-my $unprovedfname = $gresfname.".unproved";
-my $prooffname    = $gresfname.".proof";
-
-open(IN, $gresfname)              or die "Input file unreadable";
-open(PROVED, ">$provedfname")     or die "$provedfname not writable";
-open(UNPROVED, ">$unprovedfname") or die "$unprovedfname not writable";
-open(PROOF, ">$prooffname")       or die "$prooffname not writable";
 
 #------------------------------------------------------------------------
 #  Function    : DoOneResult()
@@ -121,7 +95,7 @@ sub DoOneResult
 	
 	
     my ($proof_length, $proof_depth, @used_flas, 
-	@used_refs, @used_bg);
+	@used_refs, @used_bg, %used_symbols);
 
   SWITCH: for $_ ($result)
   {
@@ -244,6 +218,18 @@ sub DoOneResult
 	    }
 	}
 
+	if($do_symbols)
+	{
+	    foreach $fla (@used_flas)
+	    {
+		my ($dfgcontents) = GetDFGFlaContents(GetFlaByName($fla));
+		@used_symbols{keys %{ CollectSymbols( $dfgcontents) }}=();
+	    }
+	}
+
+
+
+
 	print  PROVED
 	   ($count,              $fieldsepar, 
             $pname,              $fieldsepar,   
@@ -285,6 +271,11 @@ sub DoOneResult
 	     join(",", @used_refs),     $fieldsepar, 
 	     1+$#used_bg,               $fieldsepar, 
 	     join(",", @used_bg),       $fieldsepar);
+	if($do_symbols)
+	{
+	    print PROVED 
+		(join(",", keys %used_symbols), $fieldsepar);
+	}
 
 	print PROVED $linesepar;
 
@@ -329,6 +320,49 @@ sub DoOneResult
 }
 
 
+Getopt::Long::Configure ("bundling","no_ignore_case");
+
+GetOptions('provedstart|p:i'         => \$ProvedStart,
+	   'unprovedstart|u:i'       => \$UnprovedStart,
+	   'Format|F:s'              => \$Format,
+	   'Prover|P:s'              => \$Prover,
+	   'time_limit|t:i'          => \$time_limit,	    
+	   'memory_limit|m:i'        => \$memory_limit,
+	   'prover_parameters|r:s'   => \$prover_parameters,
+	   'start_date|d=s'          => \$start_date,
+	   'hostname|h:s'            => \$hostname,
+	   'machine_cpu|c:s'         => \$machine_cpu,
+	   'machine_memory|M:i'      => \$machine_memory,
+	   'machine_os|o:s'          => \$machine_os,
+	   'symbols|S'               => \$do_symbols)
+
+    or Usage();
+
+
+if ($#ARGV != 0)
+{
+    Usage();
+}
+
+
+$gproved       = $ProvedStart;
+$gunproved     = $UnprovedStart;
+$gresfname     = $ARGV[0];
+$provedfname   = $gresfname.".proved";
+$unprovedfname = $gresfname.".unproved";
+$prooffname    = $gresfname.".proof";
+
+open(IN, $gresfname)              or die "Input file unreadable";
+open(PROVED, ">$provedfname")     or die "$provedfname not writable";
+open(UNPROVED, ">$unprovedfname") or die "$unprovedfname not writable";
+open(PROOF, ">$prooffname")       or die "$prooffname not writable";
+
+
+if($do_symbols)
+{
+    LoadCounts();
+    OpenDbs();
+}
 
 
 while(<IN>)
