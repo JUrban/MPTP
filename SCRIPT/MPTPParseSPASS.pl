@@ -135,7 +135,7 @@ sub DoOneResult
 
     $_ = <IN>;
 
-    /^Problem:\s*t(\d+)_(\w+).*$/ 
+    /^Problem:.*\b*t(\d+)_(\w+)[.]dfg\s*$/ 
 	or die "Bad problem name: $_";
 
     ($thnr, $aname) = ($1, $2);
