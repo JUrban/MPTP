@@ -150,7 +150,7 @@ sub  ProcessArgs
 
     foreach $arg (@ARGV)
     {
-	if ($arg =~ /t(\d+)_(\w+)/)
+	if ($arg =~ /t(\d+)_(\w+)(\[.*\])?$/)
 	{
 	    $thnr = $1;
 	    $an   = $2;
@@ -160,7 +160,7 @@ sub  ProcessArgs
 	    $thnr <= $gcnt{$an}->{'THE'} or 
 		die "$thnr is greater than the max. theorem number for $an";
 
-	    $gproblems{$an}{'THE'}{$thnr} = ();
+	    $gproblems{$an}{'THE'}{$thnr} = (defined $3) ? $3 : ();
 	}
 
 	elsif ($arg =~ /by_(\d+)_(\d+)_(\d+)_(\w+)/)
@@ -276,7 +276,7 @@ sub DoProblems
 
     TH: foreach $nr ( sort {$a <=> $b} (keys %{$gproblems{$an}{'THE'}}) )
 	{
-	    %refnbrs = GetThRefs($an, $nr);
+	    %refnbrs = GetThRefs($an, $nr, $gproblems{$an}{'THE'}{$nr});
 
 	    if (! (exists $refnbrs{'THE'}))
 	    {

@@ -557,7 +557,7 @@ sub ThCanceled
 #  CAUTION: Relies on the fact that THR is numbered as THE.
 #
 #
-#  Input       : name of article, number of theorem
+#  Input       : name of article, number of theorem, possibly list of refs
 #  Global Vars : %gcnt, %GNTOKENS
 #  Output      : hash of record numbers (in THE,DEF) of the refs
 #  Side Effects: I/O, possible eroor reporting
@@ -565,14 +565,22 @@ sub ThCanceled
 
 sub GetThRefs
 {
-    my ($an, $thnr) = @_;
+    my ($an, $thnr, $inrefs) = @_;
     my ($thpos,$rstart,$rstring,@threfs,%refnbrs,
 	$ref,$rkind,$nr1,$an1,$dkind);
 
-    $thpos   = $thnr + $grcn{$an}->{'THE'} - 1;  
-    $rstart  = 1 + index($D{'THR'}[$thpos], '[');
-    $rstring = substr($D{'THR'}[$thpos], $rstart); # Removes the first '[' too.
-    chop($rstring); 
+    $thpos   = $thnr + $grcn{$an}->{'THE'} - 1;
+    if($inrefs)
+    {
+	$rstring  = substr($inrefs, 1);
+    }
+    else
+    {
+	$rstart  = 1 + index($D{'THR'}[$thpos], '[');
+	$rstring = substr($D{'THR'}[$thpos], $rstart); # Removes the first '[' too.
+	chop($rstring); 
+    }
+
     chop($rstring);                       # Removes the last ']'.
 
     @threfs  = split /\,/, $rstring;
