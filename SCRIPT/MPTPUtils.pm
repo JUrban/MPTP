@@ -777,7 +777,8 @@ sub GetFlaByName
     for( ; $j < $end; $j++)
     {
 	my ($dfgcontents, $dfgname) = GetDFGFlaContents($D{$dbkind}[$j]);
-	return $D{$dbkind}[$j] if($2 eq $dfgname);
+	return $D{$dbkind}[$j] if($dfgname eq $fname);
+	
     }
     die "Formula name $fname not found in $dbkind for article $rest\n";
 }
