@@ -98,13 +98,13 @@ sub PrintScale
 
     for($i=1; $i <= $#{@$scale}; $i++)
     {
-	print "$i:$scale->[$i]\n";
+	print "$i $scale->[$i]\n";
     }
 }
 
 
 $gstat = ParseStats();
 
-PrintStats($gstat);
+# PrintStats($gstat);
 $gscale = CreateScale($glimit, $gstat);
 PrintScale($gscale);
