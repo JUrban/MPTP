@@ -7,6 +7,7 @@ use IO::Socket;
 my $query	  = new CGI;
 my $input_fla	  = $query->param('Formula');
 my $input_limit	  = $query->param('Limit');
+my $text_mode     = $query->param('Text');
 my (%gsyms,$grefs,$ref);
 my $ghost	  = "localhost";
 my $gport	  = "60000";
@@ -29,7 +30,7 @@ sub GetQuerySymbols
     my ($fla, $syms) = @_;
     my $res = 0;
 
-    while($fla =~ /\b([0-9A-Z_]+):(func|pred|attr|mode|aggr|sel|struct) ([0-9]+)/g)
+    while($fla =~ /\b([0-9A-Z_]+):(func|pred|attr|mode|aggr|sel|struct)[ .]([0-9]+)/g)
     {
 	my $aname	= lc($1);
 	my $sname	= $gconstrs{$2}."$3"."_".$aname;
@@ -53,8 +54,8 @@ sub GetRefs
 				      );
     unless ($remote)
     {
-	print "The server is down, sorry";
-	$query->end_html;
+	print "The server is down, sorry\n";
+	$query->end_html unless($text_mode);
 	exit;
     }
     $remote->autoflush(1);
@@ -66,17 +67,18 @@ sub GetRefs
 }
 
 
-
-
 print $query->header;
-print $query->start_html("Proof Advisor Output");
+unless($text_mode)
+{
+    print $query->start_html("Proof Advisor Output");
+}
 
 if((length($input_fla) < 1)
    or ($input_limit < 1)
    or (0 == GetQuerySymbols($input_fla, \%gsyms)))
 {
-    print "No fla\n";
-    $query->end_html;
+    print "Insufficient input\n";
+    $query->end_html unless($text_mode);
     exit;
 }
 
@@ -85,8 +87,11 @@ $grefs = GetRefs(\%gsyms, $input_limit);
 my $i = -1;
 my $outnr = min($input_limit, 1+$#{ @$grefs});
 
-print "<pre>";
-print $query->h2("References sorted by expected importance");
+unless($text_mode)
+{
+    print "<pre>";
+    print $query->h2("References sorted by expected importance");
+}
 
 my $megrezurl = "http://megrez.mizar.org/cgi-bin/meaning.cgi";
 while(++$i < $outnr)
@@ -97,10 +102,21 @@ while(++$i < $outnr)
     ($kind, $nr, $an) = ($1, $2, $3);
     $kind = ($kind eq "t")? "th" : "def";
 
-    print "<a href=\"".$megrezurl."?article=".$an."&kind=".$kind
-	."&number=".$nr."\" target=entry>".uc($an).":".$kind." "
-	    .$nr."</a>\n";
+    if($text_mode)
+    {
+	my $nkind = ($kind eq "def")?"def ":"";
+	print uc($an) . ":" . $nkind . $nr . "\n";
+    }
+    else
+    {
+	print "<a href=\"".$megrezurl."?article=".$an."&kind=".$kind
+	    ."&number=".$nr."\" target=entry>".uc($an).":".$kind." "
+		.$nr."</a>\n";
+    }
 }
 
-print "<pre/>";
-print $query->end_html;
+unless($text_mode)
+{
+    print "<pre/>";
+    print $query->end_html;
+}
