@@ -49,6 +49,7 @@ BEGIN {
 		      %gcnt    
 		      %grcn        
 		      %garities
+                      @GIGNORED
 		      %D            
 
                       &DEFS_IGNORE
@@ -62,8 +63,10 @@ BEGIN {
 		      &OpenChkDb
 		      &CloseChkDb
 		      &Env2List
+                      &CollectSymbols
 		      &CreateBg
 		      &ThCanceled
+                      &GetDFGFlaContents
                       &GetFlaDBKind
                       &CreateNDBFlaByName
                       &GetFlaByName
@@ -206,6 +209,12 @@ my $gsymbskip     = length("arity");
 
 # Fast arity cache - article symbols loaded on demand from db
 %garities   = ();
+
+
+# Symbols we ignore when collecting symbols, 
+# variables have to be handled specially
+@GIGNORED = ( "", "and", "equal", "forall", "not", "implies", 
+	      "equiv", "or", "exists", "true", "false");
 
 
 # Kinds of definition handling
@@ -484,8 +493,71 @@ sub Env2List
 
 
 
+#------------------------------------------------------------------------
+#  Function    : CollectSymbols()
+#
+#  Get the nonvariable user symbols from a string.
+#  
+#  Assumptions: 
+#   We split on non-word characters, so no dfg or user symbol
+#   may contain them, and every word character is part of some
+#   dfg or user symbol. All variables start with a capital letter.
+#
+#  Input       : string containing dfg and user symbols
+#  Global Vars : -
+#  Output      : hash of the symbol
+#------------------------------------------------------------------------
 
+sub CollectSymbols
+{
+    my %symbols;
+    my $symb;
 
+    @symbols{ (split /\W+/, $_[0]) } = ();
+
+    foreach $symb (@GIGNORED)
+    {
+	delete $symbols{$symb};
+    }
+
+    foreach $symb (keys %symbols)
+    {
+	delete $symbols{$symb} if( $symb =~ m/^[A-Z].*/ );
+    }
+
+    return  \%symbols;
+
+}
+
+#------------------------------------------------------------------------
+#  Function    : GetMatchingParen()
+#
+#  Return the index of matching parenthesis in string for  
+#  given position (only in forward direction). 
+#  More such funcs would call for Prolog implementation,
+#  but I need very little of this now and try to keep things
+#  simple.
+#
+#  Input       : string, position, initial balance 
+#                (can be negative - no sense now)
+#  Global Vars : -
+#  Output      : the matching paren position
+#------------------------------------------------------------------------
+
+sub GetMatchingParen
+{
+    my ($s, $beg, $balance) = @_;
+
+    $_ = $s;
+    pos($_) = 1 + $beg;    # match from here
+
+    while( ($balance != 0) && ( m/([()])/gc ) ) 
+    {
+	$balance += ($1 eq '(')? 1 : -1;
+    }
+
+    return pos($_);
+}
 
 # Create background theory for one article.
 # BUG here! The first item in db does not begin with \n !
@@ -604,6 +676,18 @@ sub ThCanceled
     return (0 < index($D{'THR'}[$thnr], "_canceled_"));
 }
 
+# returns also the name
+sub GetDFGFlaContents
+{
+    my ($fla) = @_;
+
+    $fla  =~ m/^\s*formula\((.*)\n(\w+)\)$/s
+	or die "Bad DFG formula $fla\n";
+
+    return ($1, $2);
+}
+
+
 # Yields a DB kind, the exception are now the ndb formulas for arithmetics
 sub GetFlaDBKind
 {
@@ -692,10 +776,8 @@ sub GetFlaByName
     my $j     = $start;
     for( ; $j < $end; $j++)
     {
-	$D{$dbkind}[$j]          =~ m/^\s*formula\((.*)\n(\w+)\)$/s
-	    or die "Bad DCO fla at $j:$1,$2\n";
-
-	return $D{$dbkind}[$j] if($2 eq $fname);
+	my ($dfgcontents, $dfgname) = GetDFGFlaContents($D{$dbkind}[$j]);
+	return $D{$dbkind}[$j] if($2 eq $dfgname);
     }
     die "Formula name $fname not found in $dbkind for article $rest\n";
 }
