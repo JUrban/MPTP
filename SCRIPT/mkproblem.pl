@@ -18,6 +18,7 @@ mkproblem.pl -tcard_1 -trolle -ccard_2 t39_absvalue by_25_16_2_absvalue
    --tharticles=<arg>,      -t<arg>
    --chkarticles=<arg>,     -c<arg>
    --filter=<arg>,          -f<arg>
+   --definitions=<arg>,     -D<arg>
    --specfile=<arg>,        -F<arg>
    --help,                  -h
    --man
@@ -58,7 +59,26 @@ Specify the filtering of the background formulas.
 Default is now 1 - the checker-based signature filtering. 
 Setting to 0 does no filtering at all.
 
-=item B<<< --specfile=<arg>, -F<arg> >>>
+=item B<<< --definitions=<arg>, -B<D><arg> >>>
+
+Specify treatment of definitions.
+Default is now 0 - the 'definitions' directive is neglected
+and definitions must be explicitely specified as references
+to be included as axioms for the problems.
+1 means that all definitions from the 'definitions' directive
+are included as direct references.
+2 is as 1, but the definitions are treated as background formulas
+instead, i.e. if filtering is activated, they are included only
+if the defined symbols appear during the fixpoint computation.
+3 is like 1, but only definitions from the current article
+are used.
+4 is like 2, again with current article definitions only.
+Options 3 and 4 are useful when we know that the definitions from
+other articles have been taken care of explicitly (e.g. by some
+previous experience like Mizar Proof Advisor), but this does not
+extend to the current article, which may be new in some sense.
+
+=item B<<< --specfile=<arg>, -B<F><arg> >>>
 
 Read problem specifications from the file <arg>.
 
@@ -124,12 +144,19 @@ our (
      #     %chk_problems
     );
 
+
+# %gproblems has for each article following slots:
+# 'BG'  - background theory
+# 'THE' - theoem problems
+# 'CHK' - checker problems
+# 'DEF' - definitions moved here from 'BG', if $DEFINITIONS is of some REFS kind
 undef %gproblems;
 my ($help, $man, @tharticles, @chkarticles); # do all problems for these
 
 
 my $gaddme = 1;			# Tells to add article to its env. directives
 my $FILTER = 1;
+my $DEFINITIONS = 0;
 my $ProblemSpecFile;            # Input file containing problem specifications
 
 sub Usage 
@@ -272,7 +299,15 @@ sub PrepareBgs
 
     foreach $key (keys %gproblems)
     {
-	$gproblems{$key}{'BG'} = CreateBg($key, $gaddme);
+	$gproblems{$key}{'BG'} = CreateBg($key, $gaddme, $DEFINITIONS);
+
+
+	if(($DEFINITIONS == DEFS_ALL_AS_REFS) 
+	   || ($DEFINITIONS == DEFS_SELF_AS_REFS))
+	{
+	    $gproblems{$key}{'DEF'} = $gproblems{$key}{'BG'}->{'DEF'};
+	    delete $gproblems{$key}{'BG'}->{'DEF'};
+	}
     }
 }
 
@@ -302,12 +337,26 @@ sub DoProblems
 	if ($FILTER == 0)
 	{
 	    $mybg      = $gproblems{$an}{'BG'};
-	    GetAllBgSyms($mybg, \%bgsyms);
+	    GetAllBgSyms($mybg, \%bgsyms);     # OK for any kind of $DEFINITIONS
 	}
 
     TH: foreach $nr ( sort {$a <=> $b} (keys %{$gproblems{$an}{'THE'}}) )
 	{
 	    %refnbrs = GetThRefs($an, $nr, $gproblems{$an}{'THE'}{$nr});
+
+	    if(exists $gproblems{$an}{'DEF'})  # Add the DEFS if as REFS
+	    {
+		my $value;
+		my %tmp_hash = ();
+
+		@tmp_hash{ @{$refnbrs{'DEF'}} } = ()
+		    if(exists $refnbrs{'DEF'});
+
+		foreach $value (@{ $gproblems{$an}{'DEF'}})
+		{
+		    (exists $tmp_hash{$value}) or push( @{$refnbrs{'DEF'}}, $value);
+                }
+	    }
 
 	    if (! (exists $refnbrs{'THE'}))
 	    {
@@ -317,7 +366,7 @@ sub DoProblems
 		next TH;
 	    }
 
-	    if ($FILTER == 0)
+	    if ($FILTER == 0)  # OK for any kind of $DEFINITIONS
 	    {
 		$mysymbols = AddSymsAndSpecials('THE', \%refnbrs,
 						$mybg, \%bgsyms);
@@ -389,6 +438,7 @@ GetOptions('skipbadrefs|s:i'   => \$SkipBadThRefsProblems,
 	   'tharticles|t=s'  => \@tharticles,
 	   'chkarticles|c=s' => \@chkarticles,
 	   'filter|f=i'      => \$FILTER,
+	   'definitions|D=i' => \$DEFINITIONS,
 	   'specfile|F=s'    => \$ProblemSpecFile,
 	   'help|h'          => \$help,
 	   'man'             => \$man)
@@ -399,6 +449,8 @@ pod2usage(-exitstatus => 0, -verbose => 2) if($man);
 pod2usage(2) 
     if (($#ARGV < 0) && !(defined $ProblemSpecFile) 
 	&& ($#tharticles < 0) && ($#chkarticles < 0)); 
+
+pod2usage(2) if($DEFINITIONS > DEFS_SELF_AS_BG);
 
 die "Set the MPTPDIR shell variable, or run with the -b option"
     if ("/" eq $MPTPDIR);
