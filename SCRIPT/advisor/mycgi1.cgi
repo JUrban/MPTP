@@ -83,6 +83,13 @@ if((length($input_fla) < 1)
 }
 
 $grefs = GetRefs(\%gsyms, $input_limit);
+if($#{ @$grefs} < 1)
+{
+    print "Input contained no known constructors, no advice given\n";
+    $query->end_html unless($text_mode);
+    exit;
+}
+
 
 my $i = -1;
 my $outnr = min($input_limit, 1+$#{ @$grefs});
