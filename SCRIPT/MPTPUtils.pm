@@ -48,6 +48,12 @@ BEGIN {
 		      %garities
 		      %D            
 
+                      &DEFS_IGNORE
+                      &DEFS_ALL_AS_REFS
+                      &DEFS_SELF_AS_REFS
+                      &DEFS_ALL_AS_BG
+                      &DEFS_SELF_AS_BG
+
 		      &LoadCounts
 		      &OpenDbs
 		      &OpenChkDb
@@ -117,6 +123,7 @@ my $gsymbskip     = length("arity");
     'THR'           , $MPTPDB."references.db",
     'DRE'           , $MPTPDB."requirements.db",
     'EVL'           , $MPTPDB."environments.db",
+    'DEFSYMS'       , $MPTPDB."defsymbols.db",
     'CNT'           , $MPTPDB."counts.db",
     'RCN'           , $MPTPDB."runningcounts.db"
     );
@@ -128,7 +135,7 @@ my $gsymbskip     = length("arity");
 
 # The tokens for databases
 @GDBTOKENS = ('THE','DEF','DCO','DEM','PRO','CLE','CLF',
-	      'CLC','DSF','DSP','THR','DRE','EVL');
+	      'CLC','DSF','DSP','THR','DRE','EVL','DEFSYMS');
 
 
 # These are conveniences for directives
@@ -145,11 +152,13 @@ my $gsymbskip     = length("arity");
 # formulas (e.g. types of numbers) that cannot be in DB.
 # 'SPC' is hidden completely, is used for keeping needed
 # processing info, now just the requirement articles.
-@GBGTOKENS  = ('DCO', 'DEM', 'PRO', 'CLE', 'CLF', 'CLC', 'DRE');
+# 'DEF' is used only for $DEFINITIONS != 0.
+@GBGTOKENS  = ('DEF', 'DCO', 'DEM', 'PRO', 'CLE', 'CLF', 'CLC', 'DRE');
 
 # Long names for pretty printing
 %GBGNAMES   = 
     (
+     'DEF', "Definitional theorems",
      'DCO', "Constructor types",
      'DEM', "Mode existence",
      'PRO', "Constructor properties",
@@ -167,6 +176,14 @@ my $gsymbskip     = length("arity");
 
 # Fast arity cache - article symbols loaded on demand from db
 %garities   = ();
+
+
+# Kinds of definition handling
+sub DEFS_IGNORE             ()  { 0 }
+sub DEFS_ALL_AS_REFS        ()  { 1 }
+sub DEFS_SELF_AS_REFS       ()  { 2 }
+sub DEFS_ALL_AS_BG          ()  { 3 }
+sub DEFS_SELF_AS_BG         ()  { 4 }
 
 
 #------------------------------------------------------------------------
@@ -316,6 +333,7 @@ sub OpenDbs
 
     foreach $dbkind (@GDBTOKENS)
     {
+	die "Nonexistant db: $dbkind" unless -r $GFNAMES{$dbkind};
 	$GDBINFOS{$dbkind} =  new DB_File::RECNOINFO ;
 	$GDBINFOS{$dbkind}->{'bval'} = ".";
 	tie(@{$D{$dbkind}}, "DB_File", $GFNAMES{$dbkind}, 
@@ -455,9 +473,12 @@ sub Env2List
 #  stored or used for some more elaborate pruning.
 #  The symbol arities are not exported here, since signature
 #  filtering will usually be applied after this.
+#  Definitions are treated equally for the BG and REFS methods here,
+#  it is up to the caller to move them away, if the REFS method is used.
 #
 #  Input       : name of article, bool to tell if the article
-#                should be adde to its directives
+#                should be adde to its directives, the kind of
+#                definitions handling we use
 #  Global Vars : %gcnt, %GNTOKENS
 #  Side Effects: I/O
 #  TODO        : schemes not considered yet, needs special handling.
@@ -465,10 +486,10 @@ sub Env2List
 
 sub CreateBg
 {
-    my ($an, $addme) = @_;                     # Gets article name.
+    my ($an, $addme, $defs) = @_;                     # Gets article name.
     my ($i, $j, $start, $end, $ac, %lreq, %ldirs, $dirkind, @dir, $an1);
     my $result = 
-    { 'DCO' => [], 'DEM' => [], 'PRO' => [], 'CLE' => [], 
+    { 'DEF' => [], 'DCO' => [], 'DEM' => [], 'PRO' => [], 'CLE' => [], 
       'CLF' => [], 'CLC' => [], 'DRE' => [], 'SPC' => []};
 #  'DSF' => [], 'DSP' => [] };
 
@@ -481,6 +502,9 @@ sub CreateBg
 	($ldirs{'DCL'},$ldirs{'DCL'},$ldirs{'DCL'});
 
     @ldirs{('DEM','PRO')} = ($ldirs{'DCO'},$ldirs{'DCO'});
+
+    ($defs == DEFS_ALL_AS_BG) or ($defs == DEFS_ALL_AS_REFS)
+      or @{ $ldirs{'DEF'}} = ();
 
     if(GWATCHED & WATCH_RAWBG) { print "BG theory for $an:\n" };
 
@@ -497,7 +521,9 @@ sub CreateBg
     {
 	@dir = @{ $ldirs{$dirkind}};
 	
-	push(@dir, $an) if( $addme );
+	push(@dir, $an)
+	  if($addme && (($dirkind ne 'DEF') or ($defs != DEFS_IGNORE)));
+
 
 #	print "@dir\n";
 #	print "$ldirs{$dirkind}\n";
