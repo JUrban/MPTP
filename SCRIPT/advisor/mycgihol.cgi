@@ -10,7 +10,7 @@ my $input_limit	  = $query->param('Limit');
 my $text_mode     = $query->param('Text');
 my (%gsyms,$grefs,$ref);
 my $ghost	  = "localhost";
-my $gport	  = "70000";
+my $gport	  = "65000";
 sub min { my ($x,$y) = @_; ($x <= $y)? $x : $y }
 
 # returns nr. of syms with repetitions
@@ -19,7 +19,7 @@ sub GetQuerySymbols
     my ($fla, $syms) = @_;
     my $res = 0;
 
-    while($fla =~ /\b(`[^ \n\t\r`]+`)\b/g)
+    while($fla =~ m/(`[^` ]+`)/g)
     {
 #      push @syms, $1;
 	$syms->{$1}	= ();	# counts can be here later
@@ -64,7 +64,8 @@ if((length($input_fla) < 1)
    or ($input_limit < 1)
    or (0 == GetQuerySymbols($input_fla, \%gsyms)))
 {
-    print "Insufficient input\n";
+    print "Insufficient input: \n";
+    print "$input_fla\n";
     $query->end_html unless($text_mode);
     exit;
 }

@@ -86,9 +86,9 @@ pod2usage(-exitstatus => 0, -verbose => 2) if($man);
 pod2usage(2) if ($#ARGV != 0);
 
 my $filestem   = shift(@ARGV);
-my $gport      = 80000;
+my $gport      = 65000;
 
-$snowport = 70000 unless(defined($snowport));
+$snowport = 64000 unless(defined($snowport));
 
 # change for verbose logging
 sub LOGGING { 0 };
