@@ -22,7 +22,8 @@ EvalSnow.pl [scalelimit] ( Print the statitics abot Snow predictions)
    --limit=<arg>,           -l<arg>
    --examplegraph=<arg>,    -e<arg>
    --windowsize=<arg>,      -w<arg>
-   --ingore_self,           -I
+   --ignore_self,           -I
+   --ignore_defs,           -d
    --output=<arg>,          -o<arg>
    --all,                   -A
    --matrix,                -M
@@ -52,13 +53,19 @@ parameter also influences these results.
 Size of the smoothing window if using the -e3
 (sliding average) method. Default is 100.
 
-=item B<<< --ingore_self, -B<I> >>>
+=item B<<< --ignore_self, -B<I> >>>
 
 Do not include into the algorithms the reference to itself
 in examples. This is advisable if the theorem labels are
 newly introduced to the learning system in the testing
 examples, and so we only can hope for getting their references
 as advice.
+
+=item B<<< --ignore_de, -d >>>
+
+Skip examples with only one target label. These are usually
+definitions, which we hardly want advice for, especially
+if --ignore-self is used.
 
 =item B<<< --output=<arg>, -o<arg> >>>
 
@@ -115,6 +122,7 @@ my $gstep        = 10;     # The step for creating matrices
 # Some theorems may now be without refs - proved only by local private items
 # or schemes - then at least 1 reference always
 my $gignore_self = 0;
+my $gignore_defs = 0;
 
 my ($help, $man, $outfilename);
 my ($gstat,$gscale) ;
@@ -134,7 +142,7 @@ my ($gstat,$gscale) ;
 
 sub ParseStats
 {
-    my $predpos;
+    my ($predpos, $ignor);
     my @stat;
 
     while ($_=<>) 
@@ -146,13 +154,18 @@ sub ParseStats
 
 	    /Example.*:(.*)/ or die "Bad Example $_";
 	    my @wanted = split /\, /, $1;
-	    push @$rec, (1+$#wanted, []);
-	    push @stat, $rec;
+	    $ignor = (($gignore_defs == 1) && ($#wanted == 0));
+	    if (! $ignor)
+	    {
+		push @$rec, (1+$#wanted, []);
+		push @stat, $rec;
+	    }
 	}
 	else                  # Push positions of wanted targets - they are marked with * in $NAME.res
 	{
 	    $predpos++;
-	    push(@{ $stat[$#stat]->[1]}, $predpos) if(/.*[*].*/);
+	    push(@{ $stat[$#stat]->[1]}, $predpos)
+		if((! $ignor) && (/.*[*].*/));
 	}
     }
     return \@stat;
@@ -337,7 +350,8 @@ Getopt::Long::Configure ("bundling","no_ignore_case");
 GetOptions('limit|l=i'         => \$glimit,
 	   'examplegraph|e=i'  => \$GraphMethod,
 	   'windowsize|w=i'    => \$gwindow_size,
-	   'ingore_self|I'     => \$gignore_self,
+	   'ignore_self|I'     => \$gignore_self,
+	   'ignore_defs|d'     => \$gignore_defs,
 	   'output|o=s'        => \$outfilename,
 	   'all|A'             => \$DoAllGraphs,
 	   'matrix|M'          => \$DoMatrix,
