@@ -42,6 +42,8 @@ my $machine_cpu	       = "P4";
 my $machine_memory     = 512232;		# In kb 
 my $machine_os	       = "Linux";
 
+my $do_prolog   = 1;        # Print shortened prolog output into *.plres with 
+                            # proof_res(Ref,DThRfs,BGRefs,Info)
 my $do_symbols  = 0;        # Print symbol information - now incompatible with MPTPResults.sql
 my $escapechar  = '\\';
 my $fieldsepar  = "\t";     # MySQL field separator
@@ -53,6 +55,7 @@ my $gresfname;              # result file name
 my $provedfname;            # proved file name
 my $unprovedfname;          # unproved file name
 my $prooffname;             # proof file name
+my $prologname;             # prolog results file name
 
 sub Usage 
 {
@@ -109,10 +112,10 @@ sub DoOneResult
 
     $_ = <IN>;
 
-    /^Problem:.*\bt(\d+)_(\w+)[.]dfg\s*$/ 
+    /^Problem:.*\b(.*__)?t(\d+)_(\w+)[.]dfg\s*$/ 
 	or die "Bad problem name: $.:$_";
 
-    ($thnr, $aname) = ($1, $2);
+    ($thnr, $aname) = ($2, $3);
     $pname          = "t".$thnr."_".$aname;
 
     $_ = <IN>;
@@ -227,7 +230,15 @@ sub DoOneResult
 	    }
 	}
 
-
+	if($do_prolog)
+	{
+	    print PLRES
+		("proved($pname, $aname, [",
+		 join(",", @used_refs), "],[",
+		 join(",", @used_bg),   "],[",
+		 $proof_depth,          ",",
+		 $proof_length,         "]).\n");
+	}
 
 
 	print  PROVED
@@ -334,6 +345,7 @@ GetOptions('provedstart|p:i'         => \$ProvedStart,
 	   'machine_cpu|c:s'         => \$machine_cpu,
 	   'machine_memory|M:i'      => \$machine_memory,
 	   'machine_os|o:s'          => \$machine_os,
+	   'Prolog|R'                => \$do_prolog,
 	   'symbols|S'               => \$do_symbols)
 
     or Usage();
@@ -351,11 +363,13 @@ $gresfname     = $ARGV[0];
 $provedfname   = $gresfname.".proved";
 $unprovedfname = $gresfname.".unproved";
 $prooffname    = $gresfname.".proof";
+$prologname    = $gresfname.".plres";
 
 open(IN, $gresfname)              or die "Input file unreadable";
 open(PROVED, ">$provedfname")     or die "$provedfname not writable";
 open(UNPROVED, ">$unprovedfname") or die "$unprovedfname not writable";
 open(PROOF, ">$prooffname")       or die "$prooffname not writable";
+open(PLRES, ">$prologname")       or die "$prologname not writable";
 
 
 if($do_symbols)
@@ -378,3 +392,4 @@ close(IN);
 close(PROVED);
 close(UNPROVED);
 close(PROOF);
+close(PLRES);
