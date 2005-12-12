@@ -213,7 +213,7 @@ sub DoOneResult
 	{
 	    if($fla =~ /^[td]\d+.*$/)
 	    {
-		push @used_refs, $fla;
+		push(@used_refs, $fla) unless ($fla eq $pname);
 	    }
 	    else
 	    {
