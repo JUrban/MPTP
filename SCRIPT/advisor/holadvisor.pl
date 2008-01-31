@@ -8,11 +8,12 @@ advisor.pl (Server translating HOL symbols to numbers, talking to snow)
 
 advisor.pl [options] filestem
 
-advisor.pl -s/home/urban/bin/snow -p70000 /usr/local/share/mpadata/mpa1
+advisor.pl -s/home/urban/bin/snow -p70000 -w75000 /usr/local/share/mpadata/mpa1
 
  Options:
    --snowpath=<arg>,        -s<arg>
    --snowport=<arg>,        -p<arg>
+   --wport=<arg>,           -w<arg>
    --help,                  -h
    --man
 
@@ -28,6 +29,12 @@ to connect to already running Snow.
 =item B<<< --snowport=<arg>, -p<arg> >>>
 
 The port for communiacting with Snow, default is 50000.
+
+
+=item B<<< --wport=<arg>, -w<arg> >>>
+
+The port for communiacting with the advisor, default is 65000.
+
 
 =item B<<< --help, -h >>>
 
@@ -76,6 +83,7 @@ Getopt::Long::Configure ("bundling");
 
 GetOptions('snowpath|s=s'    => \$pathtosnow,
 	   'snowport|p=i'    => \$snowport,
+	   'wport|w=i'    => \$gport,
 	   'help|h'          => \$help,
 	   'man'             => \$man)
     or pod2usage(2);
@@ -86,7 +94,7 @@ pod2usage(-exitstatus => 0, -verbose => 2) if($man);
 pod2usage(2) if ($#ARGV != 0);
 
 my $filestem   = shift(@ARGV);
-my $gport      = 65000;
+my $gport      = 65000 unless(defined($gport));
 
 $snowport = 64000 unless(defined($snowport));
 
