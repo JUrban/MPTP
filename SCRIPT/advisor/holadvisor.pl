@@ -77,7 +77,7 @@ my @gnrref;     # Nr2Ref array for references
 my %gsymnr;   # Sym2Nr hash for symbols
 my @gnrsym;   # Nr2Sym array for symbols - takes gsymoffset into account!
 
-my ($pathtosnow,$snowport);
+my ($pathtosnow,$snowport,$gport);
 my ($help, $man);
 Getopt::Long::Configure ("bundling");
 
@@ -94,7 +94,7 @@ pod2usage(-exitstatus => 0, -verbose => 2) if($man);
 pod2usage(2) if ($#ARGV != 0);
 
 my $filestem   = shift(@ARGV);
-my $gport      = 65000 unless(defined($gport));
+$gport      = 65000 unless(defined($gport));
 
 $snowport = 64000 unless(defined($snowport));
 
