@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <title>Experimental Isabelle Proof Advisor</title>
+<script language="JavaScript">
+</script>
+  </head>
+
+  <body>
+    <center>
+    <H3 ALIGN=CENTER><FONT COLOR="#0099ff"><FONT SIZE=5 STYLE="font-size: 22pt">
+    <B>Very Experimental Isabelle Proof Advisor</B>
+    </FONT></FONT></H3>
+    </center>
+
+    <dl>
+      <dt>
+        <font size="+1">
+          <strong>Use set of symbol names like following to get advice</font></strong><br>
+	  
+"HOL.plus_class.plus"<br>
+"HOL.zero_class.zero"<br>
+"HOL.ord_class.less_eq"<br>
+"op ="<br>
+"Trueprop"<br>
+<br><br>
+      </dt>      
+      <dd>
+        <FORM METHOD="POST"  ACTION="http://lipa.ms.mff.cuni.cz/cgi-bin/isab_advisor_transl.cgi">
+         <br>
+          <center>
+          <table>
+            <tr>
+              <td colspan=2>
+                <textarea valign=top NAME="Formula" rows=20 cols=60 wrap=virtual></textarea><br><br>
+              </td>
+            </tr>
+	    <tr>
+              <td align=right>
+	      Number of requested hints:
+                <INPUT TYPE="text" NAME="Limit" VALUE="30" SIZE="5">
+              </td>
+            </tr>
+            <tr>
+              <td align=right>
+                <INPUT TYPE="submit" VALUE="Send">
+                <INPUT TYPE="reset" VALUE="Clear">
+              </td>
+            </tr>
+          </table>
+          </center>
+        </FORM>
+      </dd>
+    </dl>
+  </body>
+</html>
