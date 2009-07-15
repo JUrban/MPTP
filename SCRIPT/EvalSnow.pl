@@ -317,7 +317,7 @@ sub CreateScale
 	    $oneratio = BelowLimit($rec,$i)/min(max(1,$rec->[0] - $gignore_self), $i);
 	    $scale[$i] += $oneratio;
 	}
-	$scale[$i] = $scale[$i]/$#{@$stat};
+	$scale[$i] = $scale[$i]/$#{$stat};
     }
     return \@scale;
 }
@@ -338,7 +338,7 @@ sub PrintScale
     my ($scale) = @_;
     my $i;
 
-    for($i=1; $i <= $#{@$scale}; $i++)
+    for($i=1; $i <= $#{$scale}; $i++)
     {
 	print OUT "$i $scale->[$i]\n";
     }
