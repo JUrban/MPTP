@@ -16,8 +16,18 @@ each line in each starting with the theorem name followed by colon;
 then come the references (possibly none) comma-separated and ended by semicolon, and
 the comma-separated symbols ended by newline.
 
-=cut
+=head1 CONTACT
 
+Josef Urban Josef.Urban@gmail.com
+
+=head1 LICENCE
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+=cut
 
 use strict;
 
