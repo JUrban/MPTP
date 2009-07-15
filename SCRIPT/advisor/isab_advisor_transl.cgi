@@ -37,7 +37,7 @@ my $input_limit	  = $query->param('Limit');
 my $text_mode     = $query->param('Text');  # text mode can be used for communication with Emacs
 my (%gsyms,$grefs,$ref);
 my $ghost	  = "localhost";
-my $gport	  = "65003";
+my $gport	  = "45001";
 sub min { my ($x,$y) = @_; ($x <= $y)? $x : $y }
 
 # returns nr. of syms with repetitions
