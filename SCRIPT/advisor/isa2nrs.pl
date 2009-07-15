@@ -24,7 +24,7 @@ use strict;
 # die 'syms and refs different' if(`wc -l constrs` != `wc -l refs`);
 #open(IN1, "constrs");
 #open(IN2, "refs");
-my $gsymoffset    = 2000000; # offset at which symbol numbering starts
+my $gsymoffset    = 100000; # offset at which symbol numbering starts
 my @namearr = (); # theorem names as they come
 my %namenums = (); 
 my @cn_arr = (); # symbol names as they come
