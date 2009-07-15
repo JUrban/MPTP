@@ -1,0 +1,57 @@
+<html>
+  <head>
+    <title>Experimental Isabelle Proof Advisor (now only trained on Algebra)</title>
+<script language="JavaScript">
+</script>
+  </head>
+
+  <body>
+    <center>
+    <H3 ALIGN=CENTER><FONT COLOR="#0099ff"><FONT SIZE=5 STYLE="font-size: 22pt">
+    <B>Very Experimental Isabelle Proof Advisor</B>
+    </FONT></FONT></H3>
+    </center>
+
+    <dl>
+      <dt>
+        <font size="+1">
+          <strong>Use set of ATP symbol names like following to get advice</font></strong><br>
+	  
+c_Finite__Set_OACIf<br>
+c_ATP__Linkup_Osko__Set__XBex__insert__1<br>
+c_ATP__Linkup_Osko__Set__Xpsubset__imp__ex__mem__1<br>
+c_ATP__Linkup_Osko__Inductive__Xbasic__monos__8__1<br>
+c_Divides_Odiv__class_Odvd<br>
+c_Ring_Osko__Ring__Xcring__Xcring__fieldI2__1<br>
+c_Group_Ocomm__group<br>
+<br><br>
+      </dt>      
+      <dd>
+        <FORM METHOD="POST"  ACTION="http://lipa.ms.mff.cuni.cz/cgi-bin/mycgiisaha.cgi">
+         <br>
+          <center>
+          <table>
+            <tr>
+              <td colspan=2>
+                <textarea valign=top NAME="Formula" rows=20 cols=60 wrap=virtual></textarea><br><br>
+              </td>
+            </tr>
+	    <tr>
+              <td align=right>
+	      Number of requested hints:
+                <INPUT TYPE="text" NAME="Limit" VALUE="30" SIZE="5">
+              </td>
+            </tr>
+            <tr>
+              <td align=right>
+                <INPUT TYPE="submit" VALUE="Send">
+                <INPUT TYPE="reset" VALUE="Clear">
+              </td>
+            </tr>
+          </table>
+          </center>
+        </FORM>
+      </dd>
+    </dl>
+  </body>
+</html>
