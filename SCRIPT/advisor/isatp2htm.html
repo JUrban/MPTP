@@ -18,10 +18,8 @@
           <strong>Use set of ATP facts like</font></strong><br>
 	  
 <br><br>
-fof(fact_ATP_OfNot__def,conjecture,(! [V_P] : (c_hBOOL(c_hAPP(tc_HOL_Obool,tc_HOL_Obool,c_fNot,V_P)) <=> ~ c_hBOOL(V_P)) )).<br>
-fof(fact_Pure_OprotectD,axiom,(c_hBOOL(c_hAPP(tc_prop,tc_prop,c_hAPP(tc_prop,tc_fun(tc_prop,tc_prop),c__061_061_062,c_prop(c_hAPP(tc_HOL_Obool,tc_prop,c_HOL_OTrueprop,c_fFalse))),c_hAPP(tc_HOL_Obool,tc_prop,c_HOL_OTrueprop,c_fFalse))) )).<br>
-fof(fact_HOL_Oatomize__eq,axiom,(! [T_a] : ! [V_x] : ! [V_y] : c_hBOOL(c__061_061(tc_prop,c_hAPP(tc_HOL_Obool,tc_prop,c_HOL_OTrueprop,c_hAPP(T_a,tc_HOL_Obool,c_hAPP(T_a,tc_fun(T_a,tc_HOL_Obool),c_fequal(T_a),V_x),V_y)),c_hAPP(tc_HOL_Obool,tc_prop,c_HOL_OTrueprop,c_hAPP(T_a,tc_HOL_Obool,c_hAPP(T_a,tc_fun(T_a,tc_HOL_Obool),c_fequal(T_a),V_x),V_y)))) )).<br>
-fof(fact_ATP_OfNot__def__raw,axiom,(c_fNot = c_fNot )).<br>
+fof(fact_Transcendental_Opi__not__less__zero,conjecture,( ~ c_hBOOL(c_hAPP(tc_RealDef_Oreal,tc_HOL_Obool,c_hAPP(tc_RealDef_Oreal,tc_fun(tc_RealDef_Oreal,tc_HOL_Obool),c_Orderings_Oord__class_Oless(tc_RealDef_Oreal),c_Transcendental_Opi),c_Groups_Ozero__class_Ozero(tc_RealDef_Oreal))) ),inference(isabelle,[],[fact_Transcendental_Opi__ge__zero])).<br><br>
+fof(fact_Transcendental_Opi__ge__zero,axiom,( c_hBOOL(c_hAPP(tc_RealDef_Oreal,tc_HOL_Obool,c_hAPP(tc_RealDef_Oreal,tc_fun(tc_RealDef_Oreal,tc_HOL_Obool),c_Orderings_Oord__class_Oless__eq(tc_RealDef_Oreal),c_Groups_Ozero__class_Ozero(tc_RealDef_Oreal)),c_Transcendental_Opi)) ),inference(isabelle,[],[fact_Transcendental_Opi__gt__zero])).<br>
 <br><br>
       </dt>      
       <dd>
