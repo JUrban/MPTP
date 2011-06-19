@@ -26,7 +26,7 @@ print $query->start_html("HTMLized Output");
 $_ = $input_fla;
 
 s/[\n]/<br>/g;
-s/\bfact_([a-zA-Z0-9_]+)/<a href=\"@{[isa2htm($1)]}\">fact_$1<\/a>/g;
+s/\bfact_([a-zA-Z0-9_]+)/"<a href=\"" . isa2htm($1) . "\">fact_$1<\/a>"/ge;
 
 print $_;
 $query->end_html;
