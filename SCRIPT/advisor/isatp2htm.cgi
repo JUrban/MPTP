@@ -19,7 +19,7 @@ sub isa2htm
     s/_O/./g;
     s/__/_/g;
     my @s = split(/[\.]/, $_);
-    return $MyUrl . $s[0] . '?go=' . join('.', @s[1 .. $#s]);
+    return $MyUrl . $s[0] . '.html?go=' . join('.', @s[1 .. $#s]);
 }
 
 print $query->header;
