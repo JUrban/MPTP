@@ -14,7 +14,7 @@ my $MyUrl= 'http://mizar.cs.ualberta.ca/~mptp/isawww/library/HOL/';
 
 sub isa2htm
 {
-    my $in = @_;
+    my ($in) = @_;
     $_ = $in;
     s/_O/./g;
     s/__/_/g;
