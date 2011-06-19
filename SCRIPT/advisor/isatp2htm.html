@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <title>Poor Man's Isabelle ATP2HTML Linker</title>
+<script language="JavaScript">
+</script>
+  </head>
+
+  <body>
+    <center>
+    <H3 ALIGN=CENTER><FONT COLOR="#0099ff"><FONT SIZE=5 STYLE="font-size: 22pt">
+    <B>Poor Man's Isabelle ATP2HTML Linker</B>
+    </FONT></FONT></H3>
+    </center>
+
+    <dl>
+      <dt>
+        <font size="+1">
+          <strong>Use set of ATP facts like</font></strong><br>
+	  
+<br><br>
+fof(fact_ATP_OfNot__def,conjecture,(! [V_P] : (c_hBOOL(c_hAPP(tc_HOL_Obool,tc_HOL_Obool,c_fNot,V_P)) <=> ~ c_hBOOL(V_P)) )).<br>
+fof(fact_Pure_OprotectD,axiom,(c_hBOOL(c_hAPP(tc_prop,tc_prop,c_hAPP(tc_prop,tc_fun(tc_prop,tc_prop),c__061_061_062,c_prop(c_hAPP(tc_HOL_Obool,tc_prop,c_HOL_OTrueprop,c_fFalse))),c_hAPP(tc_HOL_Obool,tc_prop,c_HOL_OTrueprop,c_fFalse))) )).<br>
+fof(fact_HOL_Oatomize__eq,axiom,(! [T_a] : ! [V_x] : ! [V_y] : c_hBOOL(c__061_061(tc_prop,c_hAPP(tc_HOL_Obool,tc_prop,c_HOL_OTrueprop,c_hAPP(T_a,tc_HOL_Obool,c_hAPP(T_a,tc_fun(T_a,tc_HOL_Obool),c_fequal(T_a),V_x),V_y)),c_hAPP(tc_HOL_Obool,tc_prop,c_HOL_OTrueprop,c_hAPP(T_a,tc_HOL_Obool,c_hAPP(T_a,tc_fun(T_a,tc_HOL_Obool),c_fequal(T_a),V_x),V_y)))) )).<br>
+fof(fact_ATP_OfNot__def__raw,axiom,(c_fNot = c_fNot )).<br>
+<br><br>
+      </dt>      
+      <dd>
+        <FORM METHOD="POST"  ACTION="http://mizar.cs.ualberta.ca/~mptp/cgi-bin/isatp2htm.cgi">
+         <br>
+          <center>
+          <table>
+            <tr>
+              <td colspan=2>
+                <textarea valign=top NAME="Formula" rows=30 cols=80 wrap=virtual></textarea><br><br>
+              </td>
+            </tr>
+            <tr>
+              <td align=right>
+                <INPUT TYPE="submit" VALUE="Send">
+                <INPUT TYPE="reset" VALUE="Clear">
+              </td>
+            </tr>
+          </table>
+          </center>
+        </FORM>
+      </dd>
+    </dl>
+  </body>
+</html>
