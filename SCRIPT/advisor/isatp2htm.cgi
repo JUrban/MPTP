@@ -39,6 +39,7 @@ $_ = $input_fla;
 
 s/[\n]/<br>/g;
 s/\bfact_([a-zA-Z0-9_]+)/"<a title=\"" . isa2title($1) . "\" href=\"" . isa2htm($1) . "\">fact_$1<\/a>"/ge;
+s/([^a-zA-Z0-9_])(t?c_)([a-zA-Z0-9_]+)/"$1<a title=\"" . isa2title($3) . "\" href=\"" . isa2htm($3) . "\">$2$3<\/a>"/ge;
 
 print $_;
 $query->end_html;
