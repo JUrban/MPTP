@@ -1,0 +1,1 @@
+perl -e '<>; $name=<>; chop($name); $_=<>; die "bad" unless m/Inherit/; while(<>) {if(m/^[>]/) {print ($name, ";", join(",",@syms), ";", join(",",@refs), ";\n"); exit} elsif(m/^[ABDLTS].* +(.*)/) {push(@refs, $1) } else {m/^.* (.*)/ or die; push(@syms, $1)}}'
