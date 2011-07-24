@@ -6,6 +6,9 @@
 # isa2nrs.pl 00 >01
 # split for X-val: split -l -d ... 01
 # prepare train files: perl -e '$i=0; while($i<10) { $j=0; while($j<10) { `cat x0$j>> y0$i` if($i!=$j); $j++ } $i++; }'
+# train/test: 
+# i=0; /home/urban/gitrepo/MPTP2/MaLARea/bin/snow -train -I y0$i -F y0$i.net  -B :0-11348
+# i=0; time /home/urban/gitrepo/MPTP2/MaLARea/bin/snow -test -o allboth -I x0$i -F y0$i.net -L1000 -B :0-11348 > z0$i
 
 # NOTES: 
 #
