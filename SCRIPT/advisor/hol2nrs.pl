@@ -3,6 +3,7 @@
 
 # run like:
 # time for i in *.prf; do echo $i; hol2nrs $i >> 00; done
+# time for i in [A-Z]*/*.prf; do echo $i; /home/urban/gr/MPTP/SCRIPT/advisor/hol2nrs.pl $i >> 00; done
 # isa2nrs.pl 00 >01
 # split for X-val: split -l -d ... 01
 # prepare train files: perl -e '$i=0; while($i<10) { $j=0; while($j<10) { `cat x0$j>> y0$i` if($i!=$j); $j++ } $i++; }'
