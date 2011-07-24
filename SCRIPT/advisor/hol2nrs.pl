@@ -18,8 +18,8 @@
 # for even finer feature representation.
 
 
-my @refs = ();
-my @syms = ();
+my %refs = ();
+my %syms = ();
 
 my $kind = <>;
 chop($kind);
@@ -40,16 +40,19 @@ while(<>)
     {
 	if(m/^[ABDLTS].* +(.*)/)
 	{
-	    push(@refs, $1);
+	    $refs{$1}++;
 	}
 	else
 	{
-	    m/^.* (.*)/ or die; push(@syms, $1)
+	    m/^.* (.*)/ or die; $syms{$1}++;
 	}
     }
 }
 
-print (" ", $name, ":", join(",",@refs), ";", join(",",@syms), "\n");
+# include the symbol
+$syms{$name}++ if($kind =~ m/[dD]ef|[dD]ecl|Spec|[tT]ype/);
+
+print (" ", $name, ":", join(",",sort keys %refs), ";", join(",",sort keys %syms), "\n");
 
 
 
