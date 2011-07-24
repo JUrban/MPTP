@@ -4,6 +4,8 @@
 # run like:
 # time for i in *.prf; do echo $i; hol2nrs $i >> 00; done
 # isa2nrs.pl 00 >01
+# split for X-val: split -l -d ... 01
+# prepare train files: perl -e '$i=0; while($i<10) { $j=0; while($j<10) { `cat x0$j>> y0$i` if($i!=$j); $j++ } $i++; }'
 
 # NOTES: 
 #
@@ -25,26 +27,27 @@ my $kind = <>;
 chop($kind);
 my $name = <>;
 chop($name);
-$_=<>; die "bad" unless m/^>Inherit/;
-my $section = "Inherit";
-while(<>)
+#$_=<>; die "bad" unless m/^>Inherit/;
+my $section = ""; # "Inherit";
+while($_=<>)
 {
 
     if(m/^[>](.*)/)
     {
 	$section = $1;
+	$_=<>;
     }
 
 
     if($section =~ m/Inherit|Fetches/)
     {
-	if(m/^[ABDLTS].* +(.*)/)
+	if(m/^\d* *[ABDLTS][^ ]* +([^ ]*).*\n/)
 	{
 	    $refs{$1}++;
 	}
 	else
 	{
-	    m/^.* (.*)/ or die; $syms{$1}++;
+	    m/^\d* *[^ ]* ([^ ]*).*\n/ or die "Bad: $_"; $syms{$1}++;
 	}
     }
 }
