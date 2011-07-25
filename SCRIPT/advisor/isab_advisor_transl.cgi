@@ -35,7 +35,7 @@ my $query	  = new CGI;
 my $input_fla	  = $query->param('Formula');
 my $input_limit	  = $query->param('Limit');
 my $text_mode     = $query->param('Text');  # text mode can be used for communication with Emacs
-my (%gsyms,$grefs,$ref);
+my (%gsyms,$ref);
 my $ghost	  = "localhost";
 my $gport	  = "45001";
 sub min { my ($x,$y) = @_; ($x <= $y)? $x : $y }
@@ -46,7 +46,8 @@ sub GetQuerySymbols
     my ($fla, $syms) = @_;
     my $res = 0;
 
-    while($fla =~ m/("[^` ]+")/g)
+#    print $fla;
+    while($fla =~ m/("[^`" ]+")/mg)
     {
 #      push @syms, $1;
 	$syms->{$1}	= ();	# counts can be here later
@@ -59,7 +60,7 @@ sub GetQuerySymbols
 sub GetRefs
 {
     my ($syms, $limit) = @_;
-    my ($msgin, @res);
+    my ($msgin);
     my $EOL = "\015\012";
     my $BLANK = $EOL x 2;
     my $remote = IO::Socket::INET->new( Proto     => "tcp",
@@ -75,7 +76,8 @@ sub GetRefs
     $remote->autoflush(1);
     print $remote join(",",(keys %$syms)) . "\n";
     $msgin = <$remote>;
-    @res  = split(/\,/, $msgin);
+#    print $msgin;
+    my @res  = split(/\,/, $msgin);
     close $remote;
     return \@res;
 }
@@ -97,8 +99,9 @@ if((length($input_fla) < 1)
     exit;
 }
 
-$grefs = GetRefs(\%gsyms, $input_limit);
-if($#{ @$grefs} < 1)
+my $ggrefs = GetRefs(\%gsyms, $input_limit);
+my @grefs = @$ggrefs;
+if($#grefs < 1)
 {
     print "Input contained no known symbols, no advice given\n";
     $query->end_html unless($text_mode);
@@ -107,7 +110,7 @@ if($#{ @$grefs} < 1)
 
 
 my $i = -1;
-my $outnr = min($input_limit, 1+$#{ @$grefs});
+my $outnr = min($input_limit, 1+$#grefs);
 
 unless($text_mode)
 {
@@ -119,7 +122,7 @@ unless($text_mode)
 #my $merakurl  = "http://merak.pb.bialystok.pl/cgi-bin/mmlquery/meaning";
 while(++$i < $outnr)
 {
-    my $ref = $grefs->[$i];
+    my $ref = $grefs[$i];
 #    MPTP-like constructors commented, we now expect Query-like format
 #    $ref=~/^([td])([0-9]+)_(.*)/ or die "Bad reference $ref\n";
 #    ($kind, $nr, $an) = ($1, $2, $3);
