@@ -84,8 +84,9 @@ if((length($input_fla) < 1)
     exit;
 }
 
-$grefs = GetRefs(\%gsyms, $input_limit);
-if($#{ @$grefs} < 1)
+my $ggrefs = GetRefs(\%gsyms, $input_limit);
+my @grefs = @$ggrefs;
+if($#grefs < 1)
 {
     print "Input contained no known constructors, no advice given\n";
     $query->end_html unless($text_mode);
@@ -94,7 +95,7 @@ if($#{ @$grefs} < 1)
 
 
 my $i = -1;
-my $outnr = min($input_limit, 1+$#{ @$grefs});
+my $outnr = min($input_limit, 1+$#grefs);
 
 unless($text_mode)
 {
@@ -106,7 +107,7 @@ my $megrezurl = "http://megrez.mizar.org/cgi-bin/meaning.cgi";
 my $merakurl  = "http://merak.pb.bialystok.pl/cgi-bin/mmlquery/meaning";
 while(++$i < $outnr)
 {
-    my $ref = $grefs->[$i];
+    my $ref = $grefs[$i];
     my ($kind, $nr, $an);
 #    MPTP-like constructors commented, we now expect Query-like format
 #    $ref=~/^([td])([0-9]+)_(.*)/ or die "Bad reference $ref\n";
