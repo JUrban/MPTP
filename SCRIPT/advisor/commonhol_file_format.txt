@@ -1,0 +1,296 @@
+                           COMMON HOL FILE FORMAT
+
+
+Common HOL includes a standard file format for porting proof objects between HOL
+systems.  This file explains this file format.
+
+
+1 BASIC CONCEPTS
+
+1.1 PROOF OBJECTS
+
+A HOL proof object* captures how to recreate a single HOL declaration, assertion
+or proved theorem.  Each proof object is stored in its own proof object file,
+which has a .prf extension.
+
+There are 11 types of proof object.  These break down into 3 groups:
+
+ Stand-alone theorems
+   Axiom        - an axiom assertion
+   Thm	        - a proved theorem with no assumptions and no free variables
+   Lemma        - any proved theorem (overlaps with Thm)
+
+ Type operator introduction
+   Typedecl     - a type operator declaration
+   Basictypedef - a simple type operator definition
+   Typedef      - a type operator definition (not currently used)
+
+ Constant introduction
+   Constdecl    - a constant declaration
+   Basicdef     - a simple constant definition
+   Def          - a function definition (overlaps with Basicdef if has 0 args)
+   Spec         - a specification of 1 or more constants (using an exists thm)
+   Typebij      - abstraction and representation functions for a type operator
+
+* Note that a "proof object" differs from an "object", which refers to a HOL
+  type, term or theorem, and from a "theory object", which refers to a HOL
+  constant or type operator.
+
+1.2 PROOF MODULES
+
+A proof module is a collection of proof objects.  Proof modules are stored as
+directories of proof object files.
+
+As well as its proof object files, a proof module directory also has a SUMMARY
+file, which gives information about the HOL system on which the proof objects
+were originally created, together with a listing of the proof objects and their
+file names, in the same order as they were created in the original system.
+
+1.3 PROOF REPOSITORY 
+
+A proof repository is a directory storing a collection of proof module
+directories.  This directory should also contain a filed called HOL_TRANS_TABLE,
+for showing correspondences between different HOL systems.
+
+
+2. LEX
+
+The same lex is used for proof object files, proof module SUMMARY files and
+proof repository HOL_TRANS_TABLE files.
+
+The whitespace characters are space, tab.  Newline also separates tokens, but is
+treated specially.
+
+Comments start with a '#' character and continue to the end of a line.
+
+Numerals are 1 or more digits.
+
+General identifiers start with an uppercase letter, followed by 0 or more
+alphanumerics.  In proof object fies, they are used to refer to object
+constructors and proof object types.
+
+Preamble identifiers start with a lowercase letter, followed by 1 or more
+digits.  In proof object files, they are used to refer to preamble entries.
+
+A string token has a doublequote ('"') as start and end delimters, with any
+series of characters in between.  A backslash ('\') is used for the escape
+character, backslash-backslash denotes a backslash character, backslash-
+doublequote denotes a doublequote character and backslash followed by 3 digits
+denotes the character with a decimal ASCII code of the 3 digits.  In proof
+object files, they are used for referring to proof objects and theory objects.
+
+A heading token starts with '>' followed by 0 or more alphanumerics.
+
+A punctuation token is a single character from the following:
+    '('  ')'  '['  ']'  ';'  ','  ':'  '*'  '+'
+
+
+3. PROOF OBJECT SYNTAX
+
+This section describes the syntax for proof object files.
+
+3.1 FILE LAYOUT
+
+Files are separated into sections by lines starting with a '>' heading token.
+Some sections are optional, and are not included if they are empty for a given
+proof object.  Every file has an initial grouping of sections, called the
+"header".  Every file (other than those for type bijections) follows the header
+by an empty '>' heading line, followed by the remaining sections, called the
+"body".  The sections appearing in the body depend on the proof object type.
+They consist of optional preamble sections, a main section and potentially an
+alpha-link section at the end.
+
+3.2 HEADER SECTIONS
+
+The header consists of a title section and an optional ancestor section.  The
+title section gives the proof object type and name.  The ancestor section has a
+line for each ancestor proof object.  Each line consists of the proof object
+type abbreviation followed by a proof object name.
+
+The proof object abbreviations are as follows:
+
+   A     Axiom
+   BD    Basicdef
+   BZD   Basictypedef
+   C     Constdecl
+   D     Def
+   L     Lemma
+   S     Spec
+   T     Thm
+   Z     Typedecl
+   ZB    Typebij
+   ZD    Typedef
+
+3.3 PREAMBLE SECTIONS
+
+Preamble sections construct objects for use in later sections of the file.
+There can be preamble sections for types, terms, fetch theorems (i.e. theorems
+resulting from other proof objects) and subproof theorems.  Each preamble
+consists of a strictly-increasing numbered list of entries, with one entry per
+line.
+
+Each preamble entry is a (potentially compound) expression showing how to
+recreate an object using constructors.  The constructors are denoted by
+identifier tokens.  To enable meaningful and yet single-character identifiers
+for most constructors (for file compactness reasons), the identifiers refer to
+different constructors depending on the section they occur in:
+
+ Type preamble
+   F     function type
+   K     compound type
+   V     type variable
+
+ Term preamble
+   A     function application
+   B     binary function application
+   C     conjunction term
+   D     disjunction term
+   E     equality term
+   I     implication term
+   K     constant, followed by ordered type instantiation list (see Appendix A)
+   L     lambda abstraction
+   M     numeral
+   N     not term
+   P     pair expression
+   S     select expression
+   U     universal quantification
+   V     variable
+   X     existential quantification
+
+ Fetch preamble
+   The identifiers used are the same proof object type abbreviations as used in
+   the header ancestor section.  However, in the fetch preamble, the proof
+   object name may be followed by an ordered type instantiation list (see
+   Appendix A).
+
+ Subproof preamble
+   The identifiers used here are the same as for the main proof section (see
+   below).
+
+Objects defined in preambles can be referred to in subsequent entries/sections
+by using a special identifier token.  This special identifier starts with a
+lowercase character signifying the object's type, followed by the object's entry
+number in its preamble.  Letters correspond to object types as follows:
+
+   z     type
+   t     term
+   f     fetch theorem
+   s     subproof theorem
+
+3.4 MAIN PROOF
+
+The main proof section is a single line consisting of (usually compound)
+expression showing how to contruct a theorem from theorem constructors (i.e.
+inference rules).  The same syntax is used for subproof preamble entries.
+
+The following theorem constructor abbreviations are used (explained using HOL
+Zero and HOL Light rule names):
+
+   A     assume_rule          ASSUME
+   AA    add_asm_rule         ADD_ASSUM
+   AC    alpha_conv           ALPHA_CONV
+   AL    alpha_link_conv      ALPHA
+   B     beta_conv            BETA_CONV
+   C     contr_rule           CONTR
+   CC    ccontr_rule          CCONTR
+   CE1   conjunct1_rule       CONJUNCT1
+   CE2   conjunct2_rule       CONJUNCT2
+   CH    choose_rule          CHOOSE
+   CI    conj_rule            CONJ
+   D     disch_rule           DISCH
+   DAS   deduct_antisym_rule  DEDUCT_ANTISYM_RULE
+   DE    disj_cases_rule      DISJ_CASES
+   DI1   disj1_rule           DISJ1
+   DI2   disj2_rule           DISJ2
+   E     eq_mp_rule           EQ_MP
+   EE1   eq_imp_rule1         EQ_IMP_RULE (1st theorem)
+   EE2   eq_imp_rule2         EQ_IMP_RULE (2nd theorem)
+   EI    imp_antisym_rule     IMP_ANTISYM_RULE
+   EC    eta_conv             ETA_CONV
+   FE    eqf_elim_rule        EQF_ELIM
+   FI    eqf_intro_rule       EQF_INTRO
+   G     gen_rule             GEN
+   H     prove_asm_rule       PROVE_HYP
+   I     inst_rule            INST
+   IT    imp_trans_rule       IMP_TRANS
+   J     inst_type_rule       INST_TYPE
+   M     mp_rule              MP
+   M..   (see congruence rule list below)
+   NE    not_elim_rule        NOT_ELIM
+   NI    not_intro_rule       NOT_INTRO
+   R     refl_conv            REFL
+   S     spec_rule            SPEC
+   SB    subs_rule            SUBS
+   SBC   subs_conv            SUBS_CONV
+   SR    select_rule          SELECT_RULE
+   ST    subst_rule           SUBST
+   STC   subst_conv           SUBST_CONV
+   T     trans_rule           TRANS
+   TE    eqt_elim_rule        EQT_ELIM
+   TI    eqt_intro_rule       EQT_INTRO
+   U     undisch_rule         UNDISCH
+   X     exists_rule          EXISTS
+   Y     sym_rule             SYM
+   YC    sym_conv             SYM_CONV
+
+Multi-character theorem constructor abbreviations that start with "M" refer to
+equality congruence rules, as follows:
+
+   MA    mk_comb_rule         MK_COMB
+   MA1   mk_comb1_rule        AP_THM
+   MA2   mk_comb2_rule        AP_TERM
+   MB    mk_bin_rule          -
+   MB1   mk_bin1_rule         -
+   MB2   mk_bin2_rule         -
+   MC    mk_conj_rule         MK_CONJ
+   MC1   mk_conj1_rule        -
+   MC2   mk_conj2_rule        -
+   MD    mk_disj_rule         MK_DISJ
+   MD1   mk_disj1_rule        -
+   MD2   mk_disj2_rule        -
+   ME    mk_eq_rule           -
+   ME1   mk_eq1_rule          -
+   ME2   mk_eq2_rule          -
+   MI    mk_imp_rule          -
+   MI1   mk_imp1_rule         -
+   MI2   mk_imp2_rule         -
+   ML    mk_abs_rule          ABS
+   MN    mk_not_rule          -
+   MP    mk_pair_rule         -
+   MP1   mk_pair1_rule        -
+   MP2   mk_pair2_rule        -
+   MS    mk_select_rule       -
+   MU    mk_forall_rule       MK_FORALL
+   MX    mk_exists_rule       MK_EXISTS
+
+3.5 ALPHA-LINK SECTION
+
+Theorem proof object files contain an alpha-link section at the end.  This
+presents the conclusion of the theorem as term object.  This enables the
+importing system to recreate the original theorem with its original abstraction
+variable names.  Note that otherwise, the theorem created by the main proof
+section might have differing abstraction variable names, because the Common HOL
+standard only mandates rules to work modulo alpha-equivalence.
+
+
+APPENDIX A: ORDERED TYPE INSTANTIATION LISTS
+
+An ordered type instantiation list is a compact way of expressing an
+instantiation for the type variables in a given fetch theorem / type operator's
+generic type.  It consists of a (potentially empty) series of type objects, with
+one type object for each type variable in the fetch theorem / generic type.  The
+type objects occur in the same order in the series as the first occurrence of
+their corresponding type variable in the fetch theorem / generic type.
+
+For example, in the following generic type:
+
+      `:(B->A)->B->bool`
+
+the type variables occur in order `:B`, `:A`, and thus the following ordered
+type instantiation list:
+
+      `:C` `:B`
+
+will result in the following generic type:
+
+      :(C->B)->C->bool`.

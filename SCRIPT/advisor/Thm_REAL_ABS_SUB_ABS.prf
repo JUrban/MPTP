@@ -1,0 +1,322 @@
+>Thm
+"REAL_ABS_SUB_ABS"
+>Inherit
+C "*"
+C "+"
+T "ARITH"
+T "ARITH_LT"
+T "ARITH_MULT"
+C "BIT0"
+C "BIT1"
+L "GEN_NNF_CONV_lemma10"
+L "GEN_REAL_ARITH'A_lemma1"
+L "GEN_REAL_ARITH'A_lemma2"
+L "GEN_REAL_ARITH_lemma1"
+L "GEN_REAL_ARITH_lemma2"
+C "NUMERAL"
+L "NUM_ARITH_CONVS_lemma1"
+L "NUM_ARITH_CONVS_lemma10"
+L "NUM_ARITH_CONVS_lemma17"
+L "NUM_ARITH_CONVS_lemma9"
+L "REAL_INT_ADD_CONV_lemma0"
+L "REAL_INT_ADD_CONV_lemma1"
+L "REAL_INT_ADD_CONV_lemma6"
+L "REAL_INT_MUL_CONV_lemma0"
+L "REAL_INT_MUL_CONV_lemma1"
+L "REAL_INT_REL_CONVS_lemma16"
+T "REAL_POLY_CLAUSES"
+T "REAL_POLY_NEG_CLAUSES"
+L "SEMIRING_NORMALIZERS_CONV_lemma1"
+C "_0"
+Z "num"
+Z "real"
+C "real_abs"
+C "real_add"
+C "real_ge"
+C "real_gt"
+C "real_le"
+C "real_mul"
+C "real_neg"
+C "real_of_num"
+C "real_pow"
+C "real_sub"
+>
+>Types
+1 V "A"
+2 K "bool"
+3 K "real"
+4 F z3 z2
+5 K "num"
+6 F z3 (F z5 z3)
+7 F z3 (F z3 z3)
+>Terms
+1 V "P" z4
+2 V "a" z3
+3 V "add" z7
+4 V "b" z3
+5 V "c" z3
+6 V "d" z3
+7 V "lx" z3
+8 V "m" z5
+9 V "m" z3
+10 V "mul" z7
+11 V "n" z5
+12 V "p" z2
+13 V "pwr" z6
+14 V "r" z3
+15 V "r0" z3
+16 V "r1" z3
+17 V "rx" z3
+18 V "ry" z3
+19 V "x" z5
+20 V "x" z3
+21 V "y" z3
+22 V "z" z3
+23 K "+"
+24 K "BIT0"
+25 K "NUMERAL"
+26 K "_0"
+27 K "real_add"
+28 K "real_ge"
+29 K "real_gt"
+30 K "real_mul"
+31 K "real_neg"
+32 K "real_of_num"
+33 K "real_pow"
+34 K "real_sub"
+35 K "real_abs"
+36 A t35 t20
+37 A t35 t21
+38 B t34 t36 t37
+39 A t35 t38
+40 B t34 t20 t21
+41 A t35 t40
+42 B (K "real_le") t39 t41
+43 U t21 t42
+44 U t20 t43
+45 M 1
+46 A t32 t45
+47 A t31 t46
+48 B t30 t47 t41
+49 M 0
+50 A t32 t49
+51 B t29 (B t27 t48 t39) t50
+52 X t21 t51
+53 X t20 t52
+54 B (K "*") t26 t26
+55 A t24 t54
+56 A (K "BIT1") t26
+57 N t44
+58 B t28 t20 t50
+59 B t30 t47 t21
+60 B t27 t20 t59
+61 B t27 t20 t21
+62 C (B t28 t60 t50) (B t28 t61 t50)
+63 B t29 t50 t50
+64 A t32 (M 2)
+65 B t30 t64 t21
+66 B t29 t65 t50
+67 B t30 t64 t20
+68 A t31 t64
+69 B t30 t68 t21
+70 B t27 t67 t69
+71 B t29 t70 t50
+72 B t29 t67 t50
+73 C t58 (C t62 (C (C t63 t66) (C t71 t72)))
+74 B t28 t21 t50
+75 B t30 t47 t20
+76 B t27 t75 t21
+77 B t30 t68 t20
+78 B t27 t77 t65
+79 B t29 t78 t50
+80 C t74 (C (C (B t29 t76 t50) (B t29 t61 t50)) (C (C t79 t66) (C t63 t72)))
+81 B t27 t75 t59
+82 C (B t28 t81 t50) (B t28 t76 t50)
+83 B t30 t47 t37
+84 B t27 t36 t83
+85 B t27 t75 (B t27 t21 t84)
+86 B t27 t20 (B t27 t59 t84)
+87 C (B t29 t85 t50) (B t29 t86 t50)
+88 B t29 t75 t50
+89 B t29 t77 t50
+90 B t29 t69 t50
+91 C t88 (C t82 (C (C t89 t79) (C t90 t63)))
+92 C (B t29 t59 t50) (C (C (B t29 t81 t50) (B t29 t60 t50)) (C (C t89 t63) (C t90 t71)))
+93 D t73 t91
+94 D t80 t92
+95 D t93 t94
+96 A t31 t21
+97 B t27 t20 t96
+98 A t31 t38
+99 B t27 t20 (B t27 t59 t98)
+100 B t27 t20 t83
+101 B t27 t20 (B t27 t59 t100)
+102 A t31 t20
+103 B t27 t102 t83
+104 B t27 t20 (B t27 t59 t103)
+105 B t30 t47 t36
+106 B t27 t105 t37
+107 B t27 t20 (B t27 t59 t106)
+108 B t27 t20 (B t27 t59 t38)
+109 B t27 t21 t20
+110 B t27 t21 t21
+111 B t27 t21 t37
+112 B t27 t21 t102
+113 B t27 t21 t96
+114 B t27 t21 t83
+115 B t27 t77 t110
+116 B t27 t77 t113
+117 B t27 t77 t114
+118 B t27 t75 t96
+119 B t27 t75 (B t27 t21 t98)
+120 B t27 t75 (B t27 t21 t100)
+121 B t27 t75 (B t27 t21 t103)
+122 B t27 t75 (B t27 t21 t106)
+123 B t27 t75 (B t27 t21 t38)
+124 B t27 t59 t20
+125 B t27 t59 t21
+126 B t27 t59 t37
+127 B t27 t59 t102
+128 B t27 t59 t96
+129 B t27 t59 t83
+130 B t27 t67 t125
+131 B t27 t67 t128
+132 B t27 t67 t129
+133 B t28 t38 t50
+134 B t29 t50 t20
+135 B t29 t50 t21
+136 B t29 t50 t38
+137 V "_14036" z3
+138 L t137 (C (B t29 (B t27 t75 (B t27 t21 t137)) t50) (B t29 (B t27 t20 (B t27 t59 t137)) t50))
+139 A t138 t39
+140 A t138 t98
+141 A t138 t38
+142 V "_14038" z3
+143 B t27 t21 t142
+144 B t27 t59 t142
+145 L t142 (C (C (B t29 (B t27 t75 t142) t50) (B t29 (B t27 t20 t142) t50)) (C (C (B t29 (B t27 t77 t143) t50) (B t29 t143 t50)) (C (B t29 t144 t50) (B t29 (B t27 t67 t144) t50))))
+146 A t145 t21
+147 A t145 t37
+148 A t145 t96
+149 V "_14040" z3
+150 B t27 t149 t83
+151 L t149 (C (C (B t28 (B t27 t59 t149) t50) (B t28 (B t27 t21 t149) t50)) (C (B t29 (B t27 t75 (B t27 t21 t150)) t50) (B t29 (B t27 t20 (B t27 t59 t150)) t50)))
+152 A t151 t20
+153 A t151 t36
+154 A t151 t102
+155 L t20 t43
+156 A t155 t20
+157 L t21 t42
+158 A t157 t21
+>Fetches
+1 T "ARITH"
+2 T "ARITH_LT"
+3 T "ARITH_MULT"
+4 L "GEN_NNF_CONV_lemma10" z1
+5 L "GEN_REAL_ARITH'A_lemma1"
+6 L "GEN_REAL_ARITH'A_lemma2"
+7 L "GEN_REAL_ARITH_lemma1"
+8 L "GEN_REAL_ARITH_lemma2"
+9 L "NUM_ARITH_CONVS_lemma1"
+10 L "NUM_ARITH_CONVS_lemma10"
+11 L "NUM_ARITH_CONVS_lemma17"
+12 L "NUM_ARITH_CONVS_lemma9"
+13 L "REAL_INT_ADD_CONV_lemma0"
+14 L "REAL_INT_ADD_CONV_lemma1"
+15 L "REAL_INT_ADD_CONV_lemma6"
+16 L "REAL_INT_MUL_CONV_lemma0"
+17 L "REAL_INT_MUL_CONV_lemma1"
+18 L "REAL_INT_REL_CONVS_lemma16"
+19 T "REAL_POLY_CLAUSES"
+20 T "REAL_POLY_NEG_CLAUSES"
+21 L "SEMIRING_NORMALIZERS_CONV_lemma1" z1
+>Subproofs
+1 CE2 (CE2 (CE2 f1))
+2 CE2 (CE1 (CE2 s1))
+3 CE2 (CE2 (CE1 s1))
+4 CE2 (CE2 (CE2 s3))
+5 CE2 (CE1 f1)
+6 CE2 (CE2 f7)
+7 CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 s6))))))))))))))))))))))
+8 CE2 s7
+9 CE2 (CE2 s8)
+10 CE1 (CE2 s9)
+11 CE1 s9
+12 CE1 s8
+13 CE1 s7
+14 M (I [t3,t27;t10,t30;t13,t33;t16,t46;t15,t50] (J [z1,z3] f21)) f19
+15 CE2 s14
+16 CE1 s14
+17 CE2 s15
+18 CE1 s15
+19 CE2 s17
+20 CE1 s17
+21 CE2 s19
+22 CE1 s19
+23 CE2 s21
+24 CE1 s21
+25 CE2 s23
+26 CE1 s23
+27 CE2 s25
+28 CE1 s25
+29 CE1 s27
+30 CE2 (CE2 (CE2 (CE2 (CE2 s27))))
+31 CE1 s30
+32 CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 s30)))))))
+33 CE1 s32
+34 CE2 (CE2 (CE2 (CE2 s32)))
+35 CE1 s34
+36 CE2 (CE2 s34)
+37 CE2 s36
+38 CE1 s36
+39 CE1 s37
+40 CE1 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 s37)))))))))
+41 S t20 (CE1 f20)
+42 S t21 (S t20 (CE2 f20))
+43 CE2 (CE2 f5)
+44 CE2 s43
+45 CE1 s43
+46 CE1 s44
+47 J [z1,z3] f4
+48 T (I [t11,t45;t8,t45] (CE2 f17)) (MA2 t32 (T (I [t11,t56;t8,t56] (S t11 (S t8 (CE1 f3)))) (MA2 t25 (T (I [t11,t26;t8,t26] (S t11 (S t8 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 (CE2 s2))))))))))) (T (MB2 t23 t56 (T (I [t11,t55;t8,t26] (S t11 (S t8 (CE1 (CE2 s4))))) (T (MA2 t24 (T (I [t11,t54] (S t11 (CE1 s3))) (T (MA2 t24 (CE1 s2)) s5))) s5))) (I [t11,t26] (S t11 (CE1 s4))))))))
+49 I [t20,t36;t21,t37] s42
+50 I [t19,t45] (CE2 (CE2 (CE2 f16)))
+51 T (I [t20,t47;t21,t36;t22,t83] s40) (MB2 t27 t105 (T (T (I [t7,t47;t17,t47;t18,t37] s33) (MB1 t30 s48 t37)) (I [t20,t37] s16)))
+52 T (MA2 t31 s49) (T (I [t20,t84] s41) s51)
+53 I [t2,t20] s31
+54 MB1 t27 s53 t37
+55 I [t8,t45] (CE1 f13)
+56 MB1 t30 s55 t20
+57 I [t9,t20] s26
+58 T (T (I [t2,t47;t9,t20] s20) s56) s57
+59 MA2 t32 (T (I [t8,t56;t11,t56] f11) (MA2 t25 (T (I [t8,t26;t11,t26] f12) (MA2 t24 (T (I [t11,t26] f10) f9)))))
+60 T (I [t8,t45;t11,t45] f14) (MA2 t31 s59)
+61 T (I [t2,t47;t4,t47;t9,t20] s18) (MB1 t30 s60 t20)
+62 T (I [t8,t45;t11,t45] f15) s59
+63 T (I [t9,t20] s24) (MB1 t30 s62 t20)
+64 T (T (I [t2,t47;t9,t20] s22) s56) s57
+65 T (I [t20,t76;t21,t50] s42) (T (MB2 t27 t76 s50) (I [t2,t76] s29))
+66 T (I [t20,t61;t21,t50] s42) (T (MB2 t27 t61 s50) (I [t2,t61] s29))
+67 T (I [t9,t21] s24) (MB1 t30 s62 t21)
+68 MB1 t30 s55 t21
+69 I [t9,t21] s26
+70 T (T (I [t2,t47;t9,t21] s20) s68) s69
+71 T (I [t20,t50;t21,t50] s42) (T (MB2 t27 t50 s50) (I [t2,t50] s28))
+72 I [t2,t67] s29
+73 I [t20,t21] s41
+74 T (I [t20,t81;t21,t50] s42) (T (MB2 t27 t81 s50) (I [t2,t81] s29))
+75 T (I [t20,t60;t21,t50] s42) (T (MB2 t27 t60 s50) (I [t2,t60] s29))
+76 T (T (I [t2,t47;t9,t21] s22) s68) s69
+77 T (MB2 t27 t21 s73) s76
+78 I [t2,t77] s29
+79 T (I [t2,t47;t4,t47;t9,t21] s18) (MB1 t30 s60 t21)
+80 T (MB2 t27 t59 s73) s79
+81 I [t2,t21] s31
+82 MB1 t27 s41 t83
+83 T (MB2 t27 t21 s81) s67
+84 T (MB2 t27 t59 s81) s70
+85 T (I [t11,t49;t8,t49] f18) (T (I [t11,t26;t8,t26] (S t11 (S t8 (CE1 f2)))) (CE1 (CE2 f2)))
+>Proof
+M (I [t12,t44] f6) (D t57 (H (E (T (T (I [t1,t155] s47) (MX t20 (T (MN (B t156)) (T (I [t1,t157] s47) (MX t21 (MN (B t158))))))) (MX t20 (MX t21 (T (I [t20,t39;t21,t41] (CE1 (CE2 (CE2 (CE2 s44))))) (MB1 t29 (T (I [t20,t39;t21,t41] s42) (I [t2,t39;t5,t48] s38)) t50))))) (A t57)) (CH t20 (A t53) (CH t21 (A t52) (H (E (T (T (I [t14,t50;t2,t39;t20,t40] s13) (MC (MB1 t29 (T (MB2 t27 t39 (T (MB2 t30 t47 s42) (T (I [t20,t47;t21,t20;t22,t59] s40) (MB2 t27 t75 (T (T (I [t7,t47;t17,t47;t18,t21] s33) (MB1 t30 s48 t21)) (I [t20,t21] s16)))))) (T (I [t2,t39;t5,t75;t6,t21] s35) (MB2 t27 t75 (I [t2,t39;t5,t21] s38)))) t50) (MB1 t29 (T (MB2 t27 t39 (T (MB2 t30 t46 s42) (I [t2,t60] s31))) (T (I [t2,t39;t5,t20;t6,t59] s35) (MB2 t27 t20 (I [t2,t39;t5,t59] s38)))) t50))) (T (T (T (T (Y (B t139)) (I [t1,t138;t20,t38] f8)) (MD (MC2 t133 (B t141)) (MC2 t136 (B t140)))) (MD (MC (T (I [t20,t38;t21,t50] s46) (MB1 t28 (T (MB1 t34 s49 t50) (T (I [t20,t84;t21,t50] s42) (T (MB2 t27 t84 s50) (I [t2,t84] s29)))) t50)) (MC (T (I [t20,t123;t21,t50] s45) (MB1 t29 (T (MB1 t34 (MB2 t27 t75 (MB2 t27 t21 s49)) t50) (T (I [t20,t85;t21,t50] s42) (T (MB2 t27 t85 s50) (I [t2,t85] s29)))) t50)) (T (I [t20,t108;t21,t50] s45) (MB1 t29 (T (MB1 t34 (MB2 t27 t20 (MB2 t27 t59 s49)) t50) (T (I [t20,t86;t21,t50] s42) (T (MB2 t27 t86 s50) (I [t2,t86] s29)))) t50)))) (MC (T (I [t20,t50;t21,t38] s45) (MB1 t29 (T (MB2 t34 t50 s49) (T (I [t20,t50;t21,t84] s42) (T (MB2 t27 t50 s51) (I [t2,t106] s28)))) t50)) (MC (T (I [t20,t119;t21,t50] s45) (MB1 t29 (T (MB1 t34 (MB2 t27 t75 (MB2 t27 t21 s52)) t50) (T (I [t20,t122;t21,t50] s42) (T (MB2 t27 t122 s50) (I [t2,t122] s29)))) t50)) (T (I [t20,t99;t21,t50] s45) (MB1 t29 (T (MB1 t34 (MB2 t27 t20 (MB2 t27 t59 s52)) t50) (T (I [t20,t107;t21,t50] s42) (T (MB2 t27 t107 s50) (I [t2,t107] s29)))) t50)))))) (MD (T (MC1 (T (I [t14,t50;t20,t21;t2,t36] (CE1 s6)) (MC (MB1 t28 (I [t2,t36;t5,t59] s38) t50) (MB1 t28 (T (MB2 t27 t36 s81) (I [t2,t36;t5,t21] s38)) t50))) t87) (T (T (T (T (Y (B t153)) (I [t1,t151] f8)) (MD (MC2 t58 (B t152)) (MC2 t134 (B t154)))) (MD (MC (T (I [t21,t50] s46) (MB1 t28 (T (I [t21,t50] s42) (T (MB2 t27 t20 s50) (I [t2,t20] s29))) t50)) (MC (MC (T (I [t20,t124;t21,t50] s46) (MB1 t28 (T (MB1 t34 (I [t2,t59;t5,t20] s38) t50) s75) t50)) (T (I [t20,t109;t21,t50] s46) (MB1 t28 (T (MB1 t34 (I [t2,t21;t5,t20] s38) t50) s66) t50))) (MC (T (I [t20,t120;t21,t50] s45) (MB1 t29 (T (MB1 t34 (T (MB2 t27 t75 (I [t2,t21;t5,t20;t6,t83] s35)) (T (T (I [t2,t75;t5,t20;t6,t114] s39) (MB1 t27 s58 t114)) (I [t2,t114] s28))) t50) (T (I [t20,t114;t21,t50] s42) (T (MB2 t27 t114 s50) (I [t2,t114] s29)))) t50)) (T (I [t20,t101;t21,t50] s45) (MB1 t29 (T (MB1 t34 (T (MB2 t27 t20 (I [t2,t59;t5,t20;t6,t83] s35)) (T (I [t2,t20;t5,t20;t6,t129] s39) (MB1 t27 s63 t129))) t50) (T (I [t20,t132;t21,t50] s42) (T (MB2 t27 t132 s50) (I [t2,t132] s29)))) t50))))) (MC (T (I [t20,t50;t21,t20] s45) (MB1 t29 (T (I [t20,t50;t21,t20] s42) (I [t2,t75] s28)) t50)) (MC (MC (T (I [t20,t127;t21,t50] s46) (MB1 t28 (T (MB1 t34 (T (MB2 t27 t59 s41) (I [t2,t59;t5,t75] s38)) t50) s74) t50)) (T (I [t20,t112;t21,t50] s46) (MB1 t28 (T (MB1 t34 (T (MB2 t27 t21 s41) (I [t2,t21;t5,t75] s38)) t50) s65) t50))) (MC (T (I [t20,t121;t21,t50] s45) (MB1 t29 (T (MB1 t34 (T (MB2 t27 t75 (T (MB2 t27 t21 s82) (I [t2,t21;t5,t75;t6,t83] s35))) (T (I [t2,t75;t5,t75;t6,t114] s39) (MB1 t27 s61 t114))) t50) (T (I [t20,t117;t21,t50] s42) (T (MB2 t27 t117 s50) (I [t2,t117] s29)))) t50)) (T (I [t20,t104;t21,t50] s45) (MB1 t29 (T (MB1 t34 (T (MB2 t27 t20 (T (MB2 t27 t59 s82) (I [t2,t59;t5,t75;t6,t83] s35))) (T (T (I [t2,t20;t5,t75;t6,t129] s39) (MB1 t27 s64 t129)) (I [t2,t129] s28))) t50) (T (I [t20,t129;t21,t50] s42) (T (MB2 t27 t129 s50) (I [t2,t129] s29)))) t50))))))) (MD (MC2 t58 (MC2 t62 (MC (T (I [t14,t50;t20,t21;t2,t21] s12) (MC (MB1 t29 s76 t50) (MB1 t29 s83 t50))) (T (I [t14,t50;t20,t21;t4,t59;t2,t67] s11) (MC (MB1 t29 (MB2 t27 t67 s79) t50) (MB1 t29 (T (MB2 t27 t67 s84) s72) t50)))))) (MC2 t88 (MC2 t82 (MC (T (I [t14,t50;t20,t21;t4,t21;t2,t77] s11) (MC (MB1 t29 (T (MB2 t27 t77 s76) s78) t50) (MB1 t29 (MB2 t27 t77 s83) t50))) (T (I [t14,t50;t20,t21;t2,t59] s12) (MC (MB1 t29 s79 t50) (MB1 t29 s84 t50))))))))) (T (MC (T (I [t14,t50;t2,t37] s13) (MC (MB1 t29 (I [t2,t37;t5,t75] s38) t50) (MB1 t29 (T (MB2 t27 t37 s53) (I [t2,t37;t5,t20] s38)) t50))) (MC (T (I [t14,t50;t5,t37;t4,t21;t2,t75] s10) (MC (MB1 t29 (T (MB2 t27 t75 (I [t2,t21;t5,t75;t6,t37] s35)) (T (I [t2,t75;t5,t75;t6,t111] s39) (MB1 t27 s61 t111))) t50) (MB1 t29 (T (MB2 t27 t75 (T (MB2 t27 t21 s54) (I [t2,t21;t5,t20;t6,t37] s35))) (T (T (I [t2,t75;t5,t20;t6,t111] s39) (MB1 t27 s58 t111)) (I [t2,t111] s28))) t50))) (T (I [t14,t50;t5,t37;t4,t59;t2,t20] s10) (MC (MB1 t29 (T (MB2 t27 t20 (I [t2,t59;t5,t75;t6,t37] s35)) (T (T (I [t2,t20;t5,t75;t6,t126] s39) (MB1 t27 s64 t126)) (I [t2,t126] s28))) t50) (MB1 t29 (T (MB2 t27 t20 (T (MB2 t27 t59 s54) (I [t2,t59;t5,t20;t6,t37] s35))) (T (I [t2,t20;t5,t20;t6,t126] s39) (MB1 t27 s63 t126))) t50))))) (T (T (T (Y (B t147)) (I [t1,t145;t20,t21] f8)) (MD (MC2 t74 (B t146)) (MC2 t135 (B t148)))) (MD (MC (T (I [t20,t21;t21,t50] s46) (MB1 t28 (T (I [t20,t21;t21,t50] s42) (T (MB2 t27 t21 s50) (I [t2,t21] s29))) t50)) (MC (MC (T (I [t20,t76;t21,t50] s45) (MB1 t29 s65 t50)) (T (I [t20,t61;t21,t50] s45) (MB1 t29 s66 t50))) (MC (MC (T (I [t20,t115;t21,t50] s45) (MB1 t29 (T (MB1 t34 (MB2 t27 t77 s67) t50) (T (I [t20,t78;t21,t50] s42) (T (MB2 t27 t78 s50) (I [t2,t78] s29)))) t50)) (T (I [t20,t110;t21,t50] s45) (MB1 t29 (T (MB1 t34 s67 t50) (T (I [t20,t65;t21,t50] s42) (T (MB2 t27 t65 s50) (I [t2,t65] s29)))) t50))) (MC (T (I [t20,t125;t21,t50] s45) (MB1 t29 (T (MB1 t34 s70 t50) s71) t50)) (T (I [t20,t130;t21,t50] s45) (MB1 t29 (T (MB1 t34 (T (MB2 t27 t67 s70) s72) t50) (T (I [t20,t67;t21,t50] s42) (T (MB2 t27 t67 s50) s72))) t50)))))) (MC (T (I [t20,t50] s45) (MB1 t29 (T (I [t20,t50] s42) (I [t2,t59] s28)) t50)) (MC (MC (T (I [t20,t118;t21,t50] s45) (MB1 t29 (T (MB1 t34 (MB2 t27 t75 s73) t50) s74) t50)) (T (I [t20,t97;t21,t50] s45) (MB1 t29 (T (MB1 t34 (MB2 t27 t20 s73) t50) s75) t50))) (MC (MC (T (I [t20,t116;t21,t50] s45) (MB1 t29 (T (MB1 t34 (T (MB2 t27 t77 s77) s78) t50) (T (I [t20,t77;t21,t50] s42) (T (MB2 t27 t77 s50) s78))) t50)) (T (I [t20,t113;t21,t50] s45) (MB1 t29 (T (MB1 t34 s77 t50) s71) t50))) (MC (T (I [t20,t128;t21,t50] s45) (MB1 t29 (T (MB1 t34 s80 t50) (T (I [t20,t69;t21,t50] s42) (T (MB2 t27 t69 s50) (I [t2,t69] s29)))) t50)) (T (I [t20,t131;t21,t50] s45) (MB1 t29 (T (MB1 t34 (MB2 t27 t67 s80) t50) (T (I [t20,t70;t21,t50] s42) (T (MB2 t27 t70 s50) (I [t2,t70] s29)))) t50)))))))))))) (A t51)) (DE (A t95) (DE (A t93) (E s85 (CE1 (CE1 (CE2 (CE2 (A t73)))))) (E s85 (CE2 (CE2 (CE2 (CE2 (A t91))))))) (DE (A t94) (E s85 (CE1 (CE2 (CE2 (CE2 (A t80)))))) (E s85 (CE2 (CE1 (CE2 (CE2 (A t92)))))))))))))
+>Target
+t44
