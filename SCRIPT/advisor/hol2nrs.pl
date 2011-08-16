@@ -13,6 +13,9 @@
 
 # NOTES: 
 #
+# - see the file commonhol_file_format.txt for the format description
+#   and Thm_REAL_ABS_SUB_ABS.prf for an example
+#
 # - defined symbols (constants) typically create also a definitional
 # theorem with the same name. In .prf files they can appear both as C
 # and as D. In the .prf files corresponding to definitions, we should
