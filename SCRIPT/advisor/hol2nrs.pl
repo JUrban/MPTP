@@ -11,6 +11,9 @@
 # i=0; /home/urban/gitrepo/MPTP2/MaLARea/bin/snow -train -I y0$i -F y0$i.net  -B :0-11348
 # i=0; time /home/urban/gitrepo/MPTP2/MaLARea/bin/snow -test -o allboth -I x0$i -F y0$i.net -L1000 -B :0-11348 > z0$i
 
+# fix facts.lst to the syntax used by Mark:
+# perl -p -e 'if(/^DEF_/) {s/^DEF_/Def_/;} elsif(/^TYDEF_/) {s/^TYDEF_/Basictypedef_/;} else { s/^/Thm_/;} ' facts.lst >facts.lst1
+
 # NOTES: 
 #
 # - see the file commonhol_file_format.txt for the format description
