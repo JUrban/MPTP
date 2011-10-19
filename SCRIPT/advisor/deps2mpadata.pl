@@ -37,6 +37,7 @@ sub j2m
     elsif($k =~ m/deftheorem|definiens/) { $k1 = 'd'; }
     elsif($k =~ m/theorem/) { $k1 = 't' ; }
     elsif($k =~ m/scheme/) { $k1 = 's' ; }
+    elsif($k =~ m/lemma/) { $k1 = 'lemma'; }
     else { die "$d:::  $k"; }
     my $mn = $k1 . $nr . '_' . $article;
     $j2mt{$d} = [$k1, $mn];
