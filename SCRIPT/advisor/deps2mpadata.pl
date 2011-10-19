@@ -26,18 +26,18 @@ sub j2m
     my ($d) = @_;
     return $j2mt{$d} if(exists $j2mt{$d});
 
-    $d =~ m/^([a-z0-9_]+):([a-z0-9]+):\d+(:[a-z0-9]+)?$/ or die "$d";
+    $d =~ m/^([a-z0-9_]+):([a-z0-9]+):\d+$/ or die "$d";
     my ($article, $k, $nr) = ($1, $2, $3);
     my $k1;
 
     if($k =~ m/([rcf])cluster/) { $k1 = $1 . 'c';  }
     elsif($k =~ m/([gklmruv])constructor/) { $k1 = 'dt_' . $1; }
     elsif($k =~ m/([gklmruv])identification/) { $k1 = 'ie' ; } #just 'k'
-    elsif($k =~ m/([gklmruv])pattern/) { $k1 = 'pattern'; }
+    elsif($k =~ m/([gklmruvj])pattern/) { $k1 = 'pattern'; }
     elsif($k =~ m/deftheorem|definiens/) { $k1 = 'd'; }
     elsif($k =~ m/theorem/) { $k1 = 't' ; }
     elsif($k =~ m/scheme/) { $k1 = 's' ; }
-    else { die "$d:$k"; }
+    else { die "$d:::  $k"; }
     my $mn = $k1 . $nr . '_' . $article;
     $j2mt{$d} = [$k1, $mn];
     return $j2mt{$d};
