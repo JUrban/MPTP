@@ -26,7 +26,7 @@ sub j2m
     my ($d) = @_;
     return $j2mt{$d} if(exists $j2mt{$d});
 
-    $d =~ m/^([a-z0-9_]+):([a-z0-9]+):\d+$/ or die "$d";
+    $d =~ m/^([a-z0-9_]+):([a-z0-9]+):(\d+)$/ or die "$d";
     my ($article, $k, $nr) = ($1, $2, $3);
     my $k1;
 
