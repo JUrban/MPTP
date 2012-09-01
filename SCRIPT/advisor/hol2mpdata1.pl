@@ -5,22 +5,37 @@
 # and the reference file space-separated references for each theorem
 use strict;
 
-die 'syms and refs different' if(`wc -l constrs` != `wc -l refs`);
+#die 'syms and refs different' if(`wc -l constrs` != `wc -l refs`);
 open(FEATURES, "constrs");
-open(IN2, "refs");
+open(REFS, "refs");
 my @namearr = (); # theorem names as they come
 my %namenums = (); 
 my @cn_arr = (); # symbol names as they come
 my %cn_nums = (); 
 
-while(<FEATURES>)
+
+# FEATURES can now contain more entries than REFS, because some
+# conjunctions are removed from refs (replaced totally by their
+# conjuncts). The order should be preserved in both files.
+while(<REFS>)
 {
-    my ($name, $fla, $cn, $ref, $def);
+    my ($cn, $name1, $fla, $ref, $def);
     my %features1 = ();
     my %refs1 = ();
     chop($_);
-    $_ =~ m/^([^:]+):(.*)/;
-    ($name, $fla) = ($1, $2);
+    $_ =~ m/^([^:]+):(.*)/ or die "bad line $_";
+    my ($name, $rfs) = ($1, $2);
+    my $rfs = $2;
+
+    do  # here we are skipping redundant entries in FEATURES
+    {
+	$_ = <FEATURES>;
+	chop($_);
+	$_ =~ m/^([^:]+):(.*)/ or die "bad line $_";
+	($name1, $fla) = ($1, $2);
+    }
+    until($name1 eq $name);
+
     unless( exists $namenums{$name})
     {
 	push @namearr, $name;
@@ -37,11 +52,6 @@ while(<FEATURES>)
 	my $nr = 1000000+$cn_nums{$cn};
 	print "$nr," unless ($cn eq "");
     }
-    $_ = <IN2>;
-    chop($_);
-    $_ =~ m/^([^:]+):(.*)/;
-    die 'files not in sync $1,$name' unless ($1 == $name);
-    my $rfs = $2;
     @refs1{ (split(/ /,$rfs)) } = ();
     foreach $ref (keys %refs1)
     {
