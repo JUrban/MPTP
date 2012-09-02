@@ -5,9 +5,17 @@
 # and the reference file space-separated references for each theorem
 use strict;
 
+my $constrfile = shift;
+my $reffile = shift;
+my $ext = shift;  # optional extension for the refnr and symnr files
+
+die "at least two arguments expected" unless defined($constrfile) && defined($reffile);
+
+$ext = defined($ext) ? ".$ext" : '';
+
 #die 'syms and refs different' if(`wc -l constrs` != `wc -l refs`);
-open(FEATURES, "constrs");
-open(REFS, "refs");
+open(FEATURES, $constrfile) or die;
+open(REFS, $reffile) or die;
 my @namearr = (); # theorem names as they come
 my %namenums = (); 
 my @cn_arr = (); # symbol names as they come
@@ -66,11 +74,11 @@ while(<REFS>)
     }
     print "$namenums{$name}:\n"
 }
-open(OUT,">refnr");
+open(OUT,">refnr$ext");
 map { print OUT "$_\n"; } @namearr;
 close(OUT);
 
-open(OUT,">symnr");
+open(OUT,">symnr$ext");
 map { print OUT "$_\n"; } @cn_arr;
 close(OUT);
 
