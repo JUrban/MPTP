@@ -8,13 +8,28 @@ use strict;
 my $constrfile = shift;
 my $reffile = shift;
 my $ext = shift;  # optional extension for the refnr and symnr files
+my $symsonly = shift; # (default 0): optionally totally ignore proof references, only learn on each theorems's symbols
 
 die "at least two arguments expected" unless defined($constrfile) && defined($reffile);
 
 $ext = defined($ext) ? ".$ext" : '';
+$symsonly = 0 unless(defined($symsonly));
 
 #die 'syms and refs different' if(`wc -l constrs` != `wc -l refs`);
+
+# temporary hash for feature file lines, we no longer make assumptions
+# about the order in FEATURES
+my %featmp = (); 
+
 open(FEATURES, $constrfile) or die;
+while(<FEATURES>)
+{
+    chop($_);
+    $_ =~ m/^([^:]+):(.*)/ or die "bad line $_";    
+    $featmp{$1}=$2;
+}
+close(FEATURES);
+
 open(REFS, $reffile) or die;
 my @namearr = (); # theorem names as they come
 my %namenums = (); 
@@ -35,21 +50,18 @@ while(<REFS>)
     my ($name, $rfs) = ($1, $2);
     my $rfs = $2;
 
-    do  # here we are skipping redundant entries in FEATURES
+    if(exists($featmp{$name}))
     {
-	$_ = <FEATURES>;
-	chop($_);
-	$_ =~ m/^([^:]+):(.*)/ or die "bad line $_";
-	($name1, $fla) = ($1, $2);
+	$fla = $featmp{$name};
     }
-    until($name1 eq $name);
+    else { die "no features for $name"; }
 
     unless( exists $namenums{$name})
     {
 	push @namearr, $name;
 	$namenums{$name} = $#namearr;
     }
-    @features1{ (split(/, /,$fla)) } = ();
+    @features1{ (split(/, +/,$fla)) } = ();
     foreach $cn (keys %features1)
     {
 	if( !(exists $cn_nums{$cn})) 
@@ -70,7 +82,7 @@ while(<REFS>)
 	    push @namearr, $ref1;
 	    $namenums{$ref1} = $#namearr;
 	}
-	print "$namenums{$ref1}$w1," unless ($ref eq "");
+	if(0==$symsonly) { print "$namenums{$ref1}$w1," unless ($ref eq ""); }
     }
     print "$namenums{$name}:\n"
 }
