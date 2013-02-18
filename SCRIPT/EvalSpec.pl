@@ -377,10 +377,10 @@ pod2usage(1) if($help);
 pod2usage(-exitstatus => 0, -verbose => 2) if($man);
 pod2usage(2) if(($GraphMethod > 3) || ($DoAllGraphs && !($outfilename)));
 
-pod2usage(2) if ($#ARGV < 2);
+pod2usage(2) if ($#ARGV < 1);
 
-my $greffile = shift;
-my $gpredfile = shift;
+$greffile = shift;
+$gpredfile = shift;
 
 
 
